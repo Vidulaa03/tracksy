@@ -1,56 +1,93 @@
-console.log("Dashboard loaded");
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { applicationsAPI } from '@/services/api';
-import { JobApplication, JobStatus } from '@/types';
-import KanbanBoard from '@/components/KanbanBoard';
-import AddApplicationDialog from '@/components/AddApplicationDialog';
-import { LayoutDashboard, Plus, Briefcase, PhoneCall, TrendingUp, Star, AlertCircle } from 'lucide-react';
+import { applicationsAPI } from '../../services/api';
+import { JobApplication, JobStatus, JOB_STATUSES } from '../../types';
+import KanbanBoard from '../../components/KanbanBoard';
+import ApplicationDialog from '../../components/ApplicationDialog';
+import { Plus, Briefcase, TrendingUp, PhoneCall, Star, AlertCircle } from 'lucide-react';
 
+/* ── Skeleton loaders ──────────────────────────────────────────────────────── */
 function StatSkeleton() {
   return (
-    <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-      <div className="skeleton h-3 w-20 rounded mb-3" />
-      <div className="skeleton h-8 w-12 rounded" />
+    <div style={{
+      background: 'var(--surface)', border: '1px solid var(--border)',
+      borderRadius: '14px', padding: '20px',
+    }}>
+      <div className="skeleton" style={{ height: '13px', width: '100px', marginBottom: '14px' }} />
+      <div className="skeleton" style={{ height: '32px', width: '56px' }} />
     </div>
   );
 }
 
-function StatCard({ label, value, color, icon: Icon }: { label: string; value: number; color: string; icon: React.ElementType }) {
+function KanbanSkeleton() {
   return (
-    <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${color}18` }}>
-          <Icon size={16} style={{ color }} />
+    <div style={{ display: 'flex', gap: '12px' }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} style={{ width: '272px', minWidth: '272px' }}>
+          <div className="skeleton" style={{ height: '40px', borderRadius: '10px', marginBottom: '10px' }} />
+          <div className="skeleton" style={{ height: '110px', borderRadius: '12px', marginBottom: '8px' }} />
+          <div className="skeleton" style={{ height: '88px',  borderRadius: '12px' }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Stat card ─────────────────────────────────────────────────────────────── */
+function StatCard({
+  label, value, color, icon: Icon,
+}: {
+  label: string; value: number; color: string; icon: React.ElementType;
+}) {
+  return (
+    <div style={{
+      background: 'var(--surface)', border: '1px solid var(--border)',
+      borderRadius: '14px', padding: '20px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{label}</span>
+        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={15} style={{ color }} />
         </div>
       </div>
-      <div className="text-3xl font-bold" style={{ color: 'var(--text)' }}>{value}</div>
+      <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text)' }}>{value}</div>
     </div>
   );
 }
 
+/* ── Empty state ───────────────────────────────────────────────────────────── */
+function EmptyState({ onAdd }: { onAdd: () => void }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '64px 0', gap: '16px' }}>
+      <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--primary-muted)', border: '1px solid var(--primary-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Briefcase size={24} style={{ color: 'var(--primary)' }} />
+      </div>
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: '4px', fontSize: '15px' }}>No applications yet</p>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Add your first one to start tracking your pipeline</p>
+      </div>
+      <button onClick={onAdd}
+        style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer', background: 'var(--primary)', color: 'white', fontWeight: 600, fontSize: '13px' }}>
+        <Plus size={14} />Add first application
+      </button>
+    </div>
+  );
+}
+
+/* ── Main page ─────────────────────────────────────────────────────────────── */
 export default function DashboardPage() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [apps, setApps] = useState<JobApplication[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [addOpen, setAddOpen] = useState(false);
-  const [editApp, setEditApp] = useState<JobApplication | undefined>();
+  const [apps,        setApps]        = useState<JobApplication[]>([]);
+  const [loading,     setLoading]     = useState(true);
+  const [error,       setError]       = useState('');
+  const [dialogOpen,  setDialogOpen]  = useState(false);
+  const [editApp,     setEditApp]     = useState<JobApplication | undefined>();
 
   async function load() {
     try {
-      setIsLoading(true);
-      const res = await applicationsAPI.getAll();
-      setApps(res.data);
-    } catch {
-      setError('Failed to load applications');
-    } finally {
-      setIsLoading(false);
-    }
-    console.log("API Response:", res.data);
+      setLoading(true);
+      const r = await applicationsAPI.getAll();
+      setApps(Array.isArray(r.data) ? r.data : (r.data as any).data ?? []);
+    } catch { setError('Failed to load applications'); }
+    finally  { setLoading(false); }
   }
 
   useEffect(() => { load(); }, []);
@@ -66,13 +103,11 @@ export default function DashboardPage() {
     await load();
   }
 
+  // Optimistic update — persist to server, revert on failure
   async function handleStatusChange(id: string, status: JobStatus) {
     setApps((prev) => prev.map((a) => (a._id === id ? { ...a, status } : a)));
-    try {
-      await applicationsAPI.update(id, { status });
-    } catch {
-      await load();
-    }
+    try   { await applicationsAPI.update(id, { status }); }
+    catch { await load(); }
   }
 
   async function handleDelete(id: string) {
@@ -82,102 +117,82 @@ export default function DashboardPage() {
   }
 
   const stats = {
-    total: apps.length,
-    active: apps.filter((a) => !['rejected', 'offer'].includes(a.status)).length,
+    total:      apps.length,
+    active:     apps.filter((a) => !['rejected', 'offer'].includes(a.status)).length,
     interviews: apps.filter((a) => a.status === 'interview').length,
-    offers: apps.filter((a) => a.status === 'offer').length,
+    offers:     apps.filter((a) => a.status === 'offer').length,
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Page header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <LayoutDashboard size={22} style={{ color: 'var(--primary)' }} />
-          <div>
-            <h1 className="text-xl font-bold leading-tight" style={{ color: 'var(--text)' }}>Dashboard</h1>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              Drag cards between columns to update status
-            </p>
-          </div>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+      {/* ── page header ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Dashboard</h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+            Drag cards between columns to update status
+          </p>
         </div>
         <button
-          onClick={() => { setEditApp(undefined); setAddOpen(true); }}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-          style={{ background: 'var(--primary)', color: 'white' }}
+          onClick={() => { setEditApp(undefined); setDialogOpen(true); }}
+          style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer', background: 'var(--primary)', color: 'white', fontWeight: 600, fontSize: '13px' }}
         >
-          <Plus size={15} /> Add Application
+          <Plus size={14} />Add Application
         </button>
       </div>
 
+      {/* ── error banner ── */}
       {error && (
-        <div className="flex items-center gap-3 p-4 rounded-xl text-sm"
-          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
-          <AlertCircle size={15} />{error}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderRadius: '10px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171', fontSize: '13px' }}>
+          <AlertCircle size={14} />{error}
+          <button onClick={() => setError('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', opacity: 0.6 }}>✕</button>
         </div>
       )}
 
-      {/* Stats */}
-      {isLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4].map((i) => <StatSkeleton key={i} />)}
+      {/* ── stat cards ── */}
+      {loading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+          {[1, 2, 3, 4].map((i) => <StatSkeleton key={i} />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Applied" value={stats.total} color="#6366f1" icon={Briefcase} />
-          <StatCard label="Active Pipeline" value={stats.active} color="#38bdf8" icon={TrendingUp} />
-          <StatCard label="Interviews" value={stats.interviews} color="#fbbf24" icon={PhoneCall} />
-          <StatCard label="Offers" value={stats.offers} color="#34d399" icon={Star} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+          <StatCard label="Total Applied"   value={stats.total}      color="#6366f1" icon={Briefcase}  />
+          <StatCard label="Active Pipeline" value={stats.active}     color="#38bdf8" icon={TrendingUp} />
+          <StatCard label="Interviews"      value={stats.interviews}  color="#fbbf24" icon={PhoneCall} />
+          <StatCard label="Offers"          value={stats.offers}     color="#34d399" icon={Star}       />
         </div>
       )}
 
-      {/* Kanban */}
-      <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <h2 className="text-base font-bold mb-5" style={{ color: 'var(--text)' }}>Applications Pipeline</h2>
+      {/* ── kanban board ── */}
+      <div style={{
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        borderRadius: '14px', padding: '20px',
+      }}>
+        <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', marginBottom: '18px' }}>
+          Applications Pipeline
+        </h2>
 
-        {isLoading ? (
-          <div className="flex gap-4">
-            {[1,2,3,4,5].map((i) => (
-              <div key={i} className="flex-shrink-0" style={{ width: '264px' }}>
-                <div className="skeleton h-10 rounded-xl mb-2" />
-                <div className="space-y-2">
-                  <div className="skeleton h-28 rounded-xl" />
-                  <div className="skeleton h-24 rounded-xl" />
-                </div>
-              </div>
-            ))}
-          </div>
+        {loading ? (
+          <KanbanSkeleton />
         ) : apps.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-4">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-              style={{ background: 'var(--primary-muted)', border: '1px solid var(--primary-border)' }}>
-              <Briefcase size={28} style={{ color: 'var(--primary)' }} />
-            </div>
-            <div className="text-center">
-              <h3 className="font-bold mb-1" style={{ color: 'var(--text)' }}>No applications yet</h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Add your first application to start tracking</p>
-            </div>
-            <button onClick={() => setAddOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
-              style={{ background: 'var(--primary)', color: 'white' }}>
-              <Plus size={14} /> Add first application
-            </button>
-          </div>
+          <EmptyState onAdd={() => { setEditApp(undefined); setDialogOpen(true); }} />
         ) : (
           <KanbanBoard
             applications={apps}
             onStatusChange={handleStatusChange}
-            onEdit={(app) => { setEditApp(app); setAddOpen(true); }}
+            onEdit={(app) => { setEditApp(app); setDialogOpen(true); }}
             onDelete={handleDelete}
           />
         )}
       </div>
 
-      <AddApplicationDialog
-        open={addOpen}
-        onOpenChange={(o) => { setAddOpen(o); if (!o) setEditApp(undefined); }}
+      {/* ── add / edit dialog ── */}
+      <ApplicationDialog
+        open={dialogOpen}
+        onClose={() => { setDialogOpen(false); setEditApp(undefined); }}
         onSubmit={editApp ? handleEditSubmit : handleAdd}
-        editApplication={editApp}
+        editApp={editApp}
       />
     </div>
   );
