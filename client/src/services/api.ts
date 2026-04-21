@@ -1,17 +1,15 @@
 import axios from 'axios';
-import { JobApplication, Resume, JobStatus } from '@/types';
+import { JobApplication, Resume, JobStatus } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const api = axios.create({ baseURL: '/api' });
 
-const apiClient = axios.create({ baseURL: API_BASE });
-
-apiClient.interceptors.request.use((config) => {
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-apiClient.interceptors.response.use(
+api.interceptors.response.use(
   (r) => r,
   (err) => {
     if (err.response?.status === 401) {
@@ -23,38 +21,26 @@ apiClient.interceptors.response.use(
 );
 
 export const applicationsAPI = {
-  getAll: () => apiClient.get<{ data: JobApplication[] }>('/applications'),
-  getById: (id: string) => apiClient.get<{ data: JobApplication }>(`/applications/${id}`),
-  create: (data: Partial<JobApplication>) => apiClient.post<{ data: JobApplication }>('/applications', data),
-  update: (id: string, data: Partial<JobApplication>) =>
-    apiClient.put<{ data: JobApplication }>(`/applications/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/applications/${id}`),
-  updateStatus: (id: string, status: JobStatus) =>
-    apiClient.patch<{ data: JobApplication }>(`/applications/${id}/status`, { status }),
+  getAll:    ()                                => api.get<JobApplication[]>('/applications'),
+  getById:   (id: string)                      => api.get<JobApplication>(`/applications/${id}`),
+  create:    (data: Partial<JobApplication>)   => api.post<JobApplication>('/applications', data),
+  update:    (id: string, data: Partial<JobApplication>) => api.put<JobApplication>(`/applications/${id}`, data),
+  delete:    (id: string)                      => api.delete(`/applications/${id}`),
 };
 
 export const resumesAPI = {
-  getAll: () => apiClient.get<{ data: Resume[] }>('/resumes'),
-  getById: (id: string) => apiClient.get<{ data: Resume }>(`/resumes/${id}`),
-  create: (data: Partial<Resume>) => apiClient.post<{ data: Resume }>('/resumes', data),
-  update: (id: string, data: Partial<Resume>) => apiClient.put<{ data: Resume }>(`/resumes/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/resumes/${id}`),
+  getAll:  ()                              => api.get<Resume[]>('/resumes'),
+  getById: (id: string)                    => api.get<Resume>(`/resumes/${id}`),
+  create:  (data: Partial<Resume>)         => api.post<Resume>('/resumes', data),
+  update:  (id: string, data: Partial<Resume>) => api.put<Resume>(`/resumes/${id}`, data),
+  delete:  (id: string)                    => api.delete(`/resumes/${id}`),
 };
 
 export const aiAPI = {
-  parseJobDescription: (jobDescription: string) =>
-    apiClient.post('/ai/parse-job', { jobDescription }),
-  getResumeSuggestions: (resumeContent: string, jobDescription: string) =>
-    apiClient.post('/ai/resume-suggestions', { resumeContent, jobDescription }),
+  parseJobDescription:  (jobDescription: string, resumeContent?: string) =>
+    api.post('/ai/parse-job', { jobDescription, resumeContent }),
+  getResumeSuggestions: (jobDescription: string, resumeContent?: string) =>
+    api.post('/ai/resume-suggestions', { jobDescription, resumeContent: resumeContent ?? '' }),
 };
 
-export const authAPI = {
-  signup: (data: { name: string; email: string; password: string }) =>
-    apiClient.post('/auth/signup', data),
-
-  login: (data: { email: string; password: string }) =>
-    apiClient.post('/auth/login', data),
-
-  verify: () =>
-    apiClient.get('/auth/verify'),
-};
+export default api;
