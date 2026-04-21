@@ -43,10 +43,10 @@ const connectDB = async () => {
 connectDB();
 
 // Routes
-app.use('/auth', authRoutes);
-app.use('/applications', authMiddleware, applicationRoutes);
-app.use('/resumes', authMiddleware, resumeRoutes);
-app.use('/ai', aiRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/applications', authMiddleware, applicationRoutes);
+app.use('/api/resumes', authMiddleware, resumeRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {

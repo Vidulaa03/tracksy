@@ -2,19 +2,32 @@
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { ApplicationForm } from '@/components/Forms/ApplicationForm';
-import { Plus } from 'lucide-react';
+import { JobApplication } from '@/types';
+import { Plus, X } from 'lucide-react';
 
 interface AddApplicationDialogProps {
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: Partial<JobApplication>) => Promise<void>;
+  trigger?: React.ReactNode;
+  editApplication?: JobApplication;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddApplicationDialog({ onSubmit }: AddApplicationDialogProps) {
-  const [open, setOpen] = useState(false);
+export function AddApplicationDialog({
+  onSubmit,
+  trigger,
+  editApplication,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: AddApplicationDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(data: any) {
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = controlledOnOpenChange ?? setInternalOpen;
+
+  async function handleSubmit(data: Partial<JobApplication>) {
     setIsLoading(true);
     try {
       await onSubmit(data);
@@ -24,19 +37,42 @@ export function AddApplicationDialog({ onSubmit }: AddApplicationDialogProps) {
     }
   }
 
+  const defaultTrigger = (
+    <button
+      className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+      style={{ background: 'var(--primary)', color: 'white' }}
+    >
+      <Plus size={16} />
+      Add Application
+    </button>
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-          <Plus size={16} className="mr-2" />
-          Add Application
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add New Application</DialogTitle>
+      <DialogTrigger asChild>{trigger ?? defaultTrigger}</DialogTrigger>
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto p-0"
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border-strong)',
+          borderRadius: 'var(--radius-lg)',
+        }}
+      >
+        <DialogHeader
+          className="px-6 py-5 sticky top-0 z-10"
+          style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}
+        >
+          <DialogTitle className="text-lg font-bold" style={{ color: 'var(--text)' }}>
+            {editApplication ? 'Edit Application' : 'New Application'}
+          </DialogTitle>
         </DialogHeader>
-        <ApplicationForm onSubmit={handleSubmit} isLoading={isLoading} />
+        <div className="px-6 py-5">
+          <ApplicationForm
+            application={editApplication}
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -8,7 +8,7 @@ export interface User {
   updatedAt: string;
 }
 
-export type JobStatus = 'applied' | 'interviewing' | 'accepted' | 'rejected';
+export type JobStatus = 'applied' | 'phone_screen' | 'interview' | 'offer' | 'rejected';
 
 export interface JobApplication {
   id: string;
@@ -17,14 +17,20 @@ export interface JobApplication {
   companyName: string;
   status: JobStatus;
   description: string;
+  jobDescriptionLink?: string;
   applicationDate: string;
   notes?: string;
+  salaryRange?: string;
   parsedData?: {
-    keyRequirements?: string[];
-    skills?: string[];
-    experience?: string;
+    companyName?: string;
+    role?: string;
+    requiredSkills?: string[];
+    niceToHaveSkills?: string[];
+    seniority?: string;
+    location?: string;
     salaryRange?: string;
   };
+  resumeBullets?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -53,23 +59,24 @@ export interface ErrorResponse {
   }>;
 }
 
+export interface ParsedJobData {
+  companyName: string;
+  role: string;
+  requiredSkills: string[];
+  niceToHaveSkills: string[];
+  seniority: string;
+  location: string;
+  salaryRange?: string;
+}
+
 export interface ParseJobResponse {
   success: boolean;
-  parsedData?: {
-    keyRequirements: string[];
-    skills: string[];
-    experience: string;
-    salaryRange: string;
-  };
+  parsedData?: ParsedJobData;
   message: string;
 }
 
-export interface ResumesuggestionResponse {
+export interface ResumeSuggestionResponse {
   success: boolean;
-  suggestions?: {
-    keySkills: string[];
-    recommendedChanges: string[];
-    strengthAreas: string[];
-  };
+  bullets?: string[];
   message: string;
 }

@@ -1,107 +1,184 @@
+console.log("Dashboard loaded");
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { applicationsAPI } from '@/services/api';
-import { JobApplication } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import Header from '@/components/Header';
+import { JobApplication, JobStatus } from '@/types';
 import KanbanBoard from '@/components/KanbanBoard';
 import AddApplicationDialog from '@/components/AddApplicationDialog';
+import { LayoutDashboard, Plus, Briefcase, PhoneCall, TrendingUp, Star, AlertCircle } from 'lucide-react';
+
+function StatSkeleton() {
+  return (
+    <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <div className="skeleton h-3 w-20 rounded mb-3" />
+      <div className="skeleton h-8 w-12 rounded" />
+    </div>
+  );
+}
+
+function StatCard({ label, value, color, icon: Icon }: { label: string; value: number; color: string; icon: React.ElementType }) {
+  return (
+    <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>{label}</span>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${color}18` }}>
+          <Icon size={16} style={{ color }} />
+        </div>
+      </div>
+      <div className="text-3xl font-bold" style={{ color: 'var(--text)' }}>{value}</div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [apps, setApps] = useState<JobApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [editApp, setEditApp] = useState<JobApplication | undefined>();
 
-  useEffect(() => {
-    loadApplications();
-  }, []);
-
-  const loadApplications = async () => {
+  async function load() {
     try {
-      const response = await applicationsAPI.getAll();
-      setApplications(response.data);
-    } catch (err: any) {
-      if (err.response?.status === 503) {
-        setError('Database not configured. Please set MONGODB_URI in .env.local');
-      } else {
-        setError('Failed to load applications');
-      }
+      setIsLoading(true);
+      const res = await applicationsAPI.getAll();
+      setApps(res.data);
+    } catch {
+      setError('Failed to load applications');
     } finally {
       setIsLoading(false);
     }
-  };
+    console.log("API Response:", res.data);
+  }
 
-  const handleAddApplication = async (data: any) => {
+  useEffect(() => { load(); }, []);
+
+  async function handleAdd(data: Partial<JobApplication>) {
+    await applicationsAPI.create(data);
+    await load();
+  }
+
+  async function handleEditSubmit(data: Partial<JobApplication>) {
+    if (!editApp) return;
+    await applicationsAPI.update(editApp._id, data);
+    await load();
+  }
+
+  async function handleStatusChange(id: string, status: JobStatus) {
+    setApps((prev) => prev.map((a) => (a._id === id ? { ...a, status } : a)));
     try {
-      await applicationsAPI.create(data);
-      await loadApplications();
-      setIsAddDialogOpen(false);
-    } catch (err) {
-      setError('Failed to create application');
+      await applicationsAPI.update(id, { status });
+    } catch {
+      await load();
     }
-  };
+  }
 
-  const handleStatusChange = async (id: string, newStatus: string) => {
-    try {
-      await applicationsAPI.update(id, { status: newStatus as any });
-      await loadApplications();
-    } catch (err) {
-      setError('Failed to update application');
-    }
-  };
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this application?')) return;
+    await applicationsAPI.delete(id);
+    setApps((prev) => prev.filter((a) => a._id !== id));
+  }
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
+  const stats = {
+    total: apps.length,
+    active: apps.filter((a) => !['rejected', 'offer'].includes(a.status)).length,
+    interviews: apps.filter((a) => a.status === 'interview').length,
+    offers: apps.filter((a) => a.status === 'offer').length,
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header user={user} onLogout={handleLogout} />
-
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Applications Dashboard</h1>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            + Add Application
-          </Button>
+    <div className="space-y-8 animate-fade-in">
+      {/* Page header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <LayoutDashboard size={22} style={{ color: 'var(--primary)' }} />
+          <div>
+            <h1 className="text-xl font-bold leading-tight" style={{ color: 'var(--text)' }}>Dashboard</h1>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Drag cards between columns to update status
+            </p>
+          </div>
         </div>
+        <button
+          onClick={() => { setEditApp(undefined); setAddOpen(true); }}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+          style={{ background: 'var(--primary)', color: 'white' }}
+        >
+          <Plus size={15} /> Add Application
+        </button>
+      </div>
 
-        {error && (
-          <Card className="p-4 mb-6 bg-red-50 border border-red-200">
-            <p className="text-red-700">{error}</p>
-          </Card>
-        )}
+      {error && (
+        <div className="flex items-center gap-3 p-4 rounded-xl text-sm"
+          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
+          <AlertCircle size={15} />{error}
+        </div>
+      )}
+
+      {/* Stats */}
+      {isLoading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1,2,3,4].map((i) => <StatSkeleton key={i} />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="Total Applied" value={stats.total} color="#6366f1" icon={Briefcase} />
+          <StatCard label="Active Pipeline" value={stats.active} color="#38bdf8" icon={TrendingUp} />
+          <StatCard label="Interviews" value={stats.interviews} color="#fbbf24" icon={PhoneCall} />
+          <StatCard label="Offers" value={stats.offers} color="#34d399" icon={Star} />
+        </div>
+      )}
+
+      {/* Kanban */}
+      <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h2 className="text-base font-bold mb-5" style={{ color: 'var(--text)' }}>Applications Pipeline</h2>
 
         {isLoading ? (
-          <Card className="p-8 text-center">
-            <p className="text-gray-600">Loading applications...</p>
-          </Card>
-        ) : applications.length === 0 ? (
-          <Card className="p-8 text-center">
-            <p className="text-gray-600 mb-4">No applications yet</p>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              Create your first application
-            </Button>
-          </Card>
+          <div className="flex gap-4">
+            {[1,2,3,4,5].map((i) => (
+              <div key={i} className="flex-shrink-0" style={{ width: '264px' }}>
+                <div className="skeleton h-10 rounded-xl mb-2" />
+                <div className="space-y-2">
+                  <div className="skeleton h-28 rounded-xl" />
+                  <div className="skeleton h-24 rounded-xl" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : apps.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
+              style={{ background: 'var(--primary-muted)', border: '1px solid var(--primary-border)' }}>
+              <Briefcase size={28} style={{ color: 'var(--primary)' }} />
+            </div>
+            <div className="text-center">
+              <h3 className="font-bold mb-1" style={{ color: 'var(--text)' }}>No applications yet</h3>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Add your first application to start tracking</p>
+            </div>
+            <button onClick={() => setAddOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
+              style={{ background: 'var(--primary)', color: 'white' }}>
+              <Plus size={14} /> Add first application
+            </button>
+          </div>
         ) : (
           <KanbanBoard
-            applications={applications}
+            applications={apps}
             onStatusChange={handleStatusChange}
+            onEdit={(app) => { setEditApp(app); setAddOpen(true); }}
+            onDelete={handleDelete}
           />
         )}
+      </div>
 
-        <AddApplicationDialog
-          open={isAddDialogOpen}
-          onOpenChange={setIsAddDialogOpen}
-          onSubmit={handleAddApplication}
-        />
-      </main>
+      <AddApplicationDialog
+        open={addOpen}
+        onOpenChange={(o) => { setAddOpen(o); if (!o) setEditApp(undefined); }}
+        onSubmit={editApp ? handleEditSubmit : handleAdd}
+        editApplication={editApp}
+      />
     </div>
   );
 }
