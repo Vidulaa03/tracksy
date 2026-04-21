@@ -1,32 +1,72 @@
-@import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme inline {
-  --color-background: #ffffff;
-  --color-foreground: #000000;
-  --color-card: #f5f5f5;
-  --color-card-foreground: #000000;
-  --color-primary: #0066cc;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #f3f4f6;
-  --color-secondary-foreground: #111827;
-  --color-muted: #6b7280;
-  --color-muted-foreground: #f3f4f6;
-  --color-accent: #06b6d4;
-  --color-accent-foreground: #000000;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #ffffff;
-  --color-border: #e5e7eb;
-  --color-input: #e5e7eb;
-  --color-ring: #0066cc;
-  
-  --radius: 0.5rem;
+/* ── Design tokens ─────────────────────────────────────────────────────────── */
+:root {
+  --bg:              #080c14;
+  --surface:         #0f1623;
+  --surface-2:       #161e2e;
+  --surface-3:       #1c2638;
+  --border:          rgba(255, 255, 255, 0.06);
+  --border-strong:   rgba(255, 255, 255, 0.12);
+  --primary:         #6366f1;
+  --primary-hover:   #4f46e5;
+  --primary-muted:   rgba(99, 102, 241, 0.12);
+  --primary-border:  rgba(99, 102, 241, 0.30);
+  --text:            #f0f4ff;
+  --text-secondary:  #8892a4;
+  --text-muted:      #4b5563;
+  --radius:          10px;
+  --radius-lg:       14px;
+  --shadow:          0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-sm:       0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+/* ── Reset ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+body {
+  background:               var(--bg);
+  color:                    var(--text);
+  font-family:              'DM Sans', system-ui, sans-serif;
+  font-size:                15px;
+  line-height:              1.6;
+  -webkit-font-smoothing:   antialiased;
+  -moz-osx-font-smoothing:  grayscale;
 }
+
+input, textarea, select, button { font-family: inherit; }
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar            { width: 6px; height: 6px; }
+::-webkit-scrollbar-track      { background: transparent; }
+::-webkit-scrollbar-thumb      { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,0.18); }
+::selection                    { background: rgba(99,102,241,0.3); color: #f0f4ff; }
+
+/* ── Animations ────────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position:  200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Utility classes ───────────────────────────────────────────────────────── */
+.skeleton {
+  background:      linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation:       shimmer 1.5s infinite;
+  border-radius:   6px;
+}
+
+.animate-fade-in { animation: fadeIn 0.2s ease forwards; }
+.animate-spin    { animation: spin 0.75s linear infinite; }
