@@ -1,106 +1,181 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { applicationsAPI } from '@/services/api';
-import { JobApplication } from '@/types';
-import { useAuth } from '@/context/AuthContext';
-import Header from '@/components/Header';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { applicationsAPI } from '../../services/api';
+import { JobApplication, JobStatus, JOB_STATUSES, getStatusConfig } from '../../types';
+import ApplicationDialog from '../../components/ApplicationDialog';
+import { Search, Plus, Briefcase, Pencil, Trash2, ExternalLink, AlertCircle } from 'lucide-react';
+
+function TableSkeleton() {
+  return (
+    <>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} style={{
+          display: 'grid', gridTemplateColumns: '1fr 160px 150px 120px 80px',
+          padding: '13px 20px', borderBottom: '1px solid var(--border)', gap: '8px', alignItems: 'center',
+        }}>
+          <div>
+            <div className="skeleton" style={{ height: '13px', width: '60%', marginBottom: '5px' }} />
+            <div className="skeleton" style={{ height: '11px', width: '40%' }} />
+          </div>
+          <div className="skeleton" style={{ height: '12px' }} />
+          <div className="skeleton" style={{ height: '22px', width: '90px', borderRadius: '99px' }} />
+          <div className="skeleton" style={{ height: '12px' }} />
+          <div />
+        </div>
+      ))}
+    </>
+  );
+}
 
 export default function ApplicationsListPage() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [applications, setApplications] = useState<JobApplication[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [apps,       setApps]       = useState<JobApplication[]>([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState('');
+  const [search,     setSearch]     = useState('');
+  const [filter,     setFilter]     = useState<JobStatus | 'all'>('all');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editApp,    setEditApp]    = useState<JobApplication | undefined>();
 
-  useEffect(() => {
-    loadApplications();
-  }, []);
-
-  const loadApplications = async () => {
+  async function load() {
     try {
-      const response = await applicationsAPI.getAll();
-      setApplications(response.data);
-    } catch {
-      setApplications([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      setLoading(true);
+      const r = await applicationsAPI.getAll();
+      setApps(Array.isArray(r.data) ? r.data : (r.data as any).data ?? []);
+    } catch { setError('Failed to load applications'); }
+    finally  { setLoading(false); }
+  }
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
+  useEffect(() => { load(); }, []);
 
-  const statusColors: Record<string, string> = {
-    applied: 'bg-blue-100 text-blue-800',
-    interviewing: 'bg-yellow-100 text-yellow-800',
-    accepted: 'bg-green-100 text-green-800',
-    rejected: 'bg-red-100 text-red-800',
-  };
+  async function handleAdd(data: Partial<JobApplication>) {
+    await applicationsAPI.create(data); await load();
+  }
+  async function handleEditSubmit(data: Partial<JobApplication>) {
+    if (!editApp) return;
+    await applicationsAPI.update(editApp._id, data); await load();
+  }
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this application?')) return;
+    await applicationsAPI.delete(id);
+    setApps((p) => p.filter((a) => a._id !== id));
+  }
+
+  const filtered = apps.filter((a) => {
+    const q = search.toLowerCase();
+    return (
+      (!q || a.position.toLowerCase().includes(q) || a.companyName.toLowerCase().includes(q)) &&
+      (filter === 'all' || a.status === filter)
+    );
+  });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header user={user} onLogout={handleLogout} />
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold mb-8">All Applications</h1>
+      {/* header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Applications</h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{apps.length} total</p>
+        </div>
+        <button onClick={() => { setEditApp(undefined); setDialogOpen(true); }}
+          style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer', background: 'var(--primary)', color: 'white', fontWeight: 600, fontSize: '13px' }}>
+          <Plus size={14} />Add Application
+        </button>
+      </div>
 
-        {isLoading ? (
-          <Card className="p-8 text-center">
-            <p className="text-gray-600">Loading...</p>
-          </Card>
-        ) : applications.length === 0 ? (
-          <Card className="p-8 text-center">
-            <p className="text-gray-600 mb-4">No applications yet</p>
-            <Button onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
-          </Card>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Company</th>
-                  <th className="text-left py-3 px-4">Position</th>
-                  <th className="text-left py-3 px-4">Status</th>
-                  <th className="text-left py-3 px-4">Applied Date</th>
-                  <th className="text-left py-3 px-4">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {applications.map((app) => (
-                  <tr key={app._id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4">{app.companyName}</td>
-                    <td className="py-3 px-4">{app.position}</td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm ${
-                          statusColors[app.status] || 'bg-gray-100'
-                        }`}
-                      >
-                        {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      {new Date(app.appliedDate).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-4">
-                      <Button
-                        onClick={() => navigate(`/dashboard/applications/${app._id}`)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        View
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {error && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderRadius: '10px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171', fontSize: '13px' }}>
+          <AlertCircle size={14} />{error}
+        </div>
+      )}
+
+      {/* search + status filter */}
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+          <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+          <input
+            style={{ paddingLeft: '36px', paddingRight: '12px', paddingTop: '9px', paddingBottom: '9px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', fontSize: '13px', outline: 'none', width: '100%', transition: 'border-color 0.15s' }}
+            placeholder="Search role or company…"
+            value={search} onChange={(e) => setSearch(e.target.value)}
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e)  => (e.target.style.borderColor = 'var(--border)')}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {[{ value: 'all', label: 'All', hex: '#6366f1' }, ...JOB_STATUSES].map((s) => {
+            const active = filter === s.value;
+            return (
+              <button key={s.value} onClick={() => setFilter(s.value as JobStatus | 'all')}
+                style={{ padding: '7px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 500, cursor: 'pointer', transition: 'all 0.12s', border: `1px solid ${active ? s.hex + '55' : 'var(--border)'}`, background: active ? `${s.hex}18` : 'var(--surface)', color: active ? s.hex : 'var(--text-secondary)' }}>
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* table */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '14px', overflow: 'hidden' }}>
+        {/* table header */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 150px 120px 80px', padding: '10px 20px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+          {['Role / Company', 'Applied', 'Status', 'Salary', ''].map((h) => (
+            <span key={h} style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</span>
+          ))}
+        </div>
+
+        {loading ? <TableSkeleton /> : filtered.length === 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', gap: '12px' }}>
+            <Briefcase size={28} style={{ color: 'var(--text-muted)' }} />
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+              {search || filter !== 'all' ? 'No matching applications' : 'No applications yet'}
+            </p>
           </div>
+        ) : (
+          filtered.map((app, idx) => {
+            const sc = getStatusConfig(app.status);
+            return (
+              <div key={app._id} className="trow"
+                style={{ display: 'grid', gridTemplateColumns: '1fr 160px 150px 120px 80px', padding: '13px 20px', borderBottom: idx < filtered.length - 1 ? '1px solid var(--border)' : 'none', alignItems: 'center', transition: 'background 0.1s' }}>
+                <div>
+                  <p style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text)' }}>{app.position}</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{app.companyName}</p>
+                </div>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  {new Date(app.appliedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '99px', background: `${sc.hex}15`, color: sc.hex, width: 'fit-content' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: sc.hex }} />
+                  {sc.label}
+                </span>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{app.salaryRange || '—'}</span>
+                <div className="row-actions" style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', opacity: 0, transition: 'opacity 0.15s' }}>
+                  {app.jobDescriptionLink && (
+                    <a href={app.jobDescriptionLink} target="_blank" rel="noreferrer"
+                      style={{ padding: '5px', borderRadius: '6px', color: 'var(--text-muted)', display: 'flex' }}>
+                      <ExternalLink size={13} />
+                    </a>
+                  )}
+                  <button onClick={() => { setEditApp(app); setDialogOpen(true); }}
+                    style={{ padding: '5px', borderRadius: '6px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}>
+                    <Pencil size={13} />
+                  </button>
+                  <button onClick={() => handleDelete(app._id)}
+                    style={{ padding: '5px', borderRadius: '6px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}>
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+            );
+          })
         )}
-      </main>
+      </div>
+
+      <ApplicationDialog open={dialogOpen}
+        onClose={() => { setDialogOpen(false); setEditApp(undefined); }}
+        onSubmit={editApp ? handleEditSubmit : handleAdd} editApp={editApp} />
+
+      <style>{`.trow:hover { background: rgba(255,255,255,0.02) !important; } .trow:hover .row-actions { opacity: 1 !important; }`}</style>
     </div>
   );
 }
