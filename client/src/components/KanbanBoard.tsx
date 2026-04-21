@@ -246,18 +246,30 @@ export default function KanbanBoard({ applications, onStatusChange, onEdit, onDe
     );
   }
 
-  async function handleDragEnd({ active: a }: DragEndEvent) {
-    setActive(null);
-    const moved    = local.find((x) => x._id === a.id);
-    const original = applications.find((x) => x._id === a.id);
-    if (moved && original && moved.status !== original.status) {
-      try {
-        await onStatusChange(String(a.id), moved.status);
-      } catch {
-        setLocal(applications); // revert optimistic update on failure
-      }
+  async function handleDragEnd({ active: a, over }: DragEndEvent) {
+  setActive(null);
+
+  if (!over) return;
+
+  const moved = local.find((x) => x._id === a.id);
+  if (!moved) return;
+
+  const newStatus = String(over.id);
+
+  if (moved.status !== newStatus) {
+    const updated = local.map((x) =>
+      x._id === a.id ? { ...x, status: newStatus } : x
+    );
+
+    setLocal(updated);
+
+    try {
+      await onStatusChange(String(a.id), newStatus);
+    } catch {
+      setLocal(local);
     }
   }
+}
 
   return (
     <DndContext

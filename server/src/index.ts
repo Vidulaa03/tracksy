@@ -1,6 +1,8 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+dotenv.config();
+console.log("ENV KEY:", !!process.env.OPENAI_API_KEY);
 import mongoose from 'mongoose';
 
 // Routes

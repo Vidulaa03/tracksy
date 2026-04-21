@@ -11,6 +11,7 @@ async function callOpenAI(
   messages: { role: 'system' | 'user'; content: string }[],
   temperature = 0.3
 ): Promise<string> {
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   if (!OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY is not set in environment variables');
   }
@@ -99,10 +100,13 @@ Example: ["Built X using Y, reducing Z by 40%", ...]`,
     const bullets = JSON.parse(cleaned);
     if (!Array.isArray(bullets)) throw new Error('Unexpected response format');
     res.json({ success: true, bullets });
-  } catch (err: any) {
-    if (err instanceof z.ZodError) return res.status(400).json({ message: 'Job description required' });
-    res.status(500).json({ message: err.message || 'Failed to generate bullets' });
-  }
+  } catch (error: any) {
+  console.error("AI ROUTE ERROR:", error);
+  res.status(500).json({
+    message: error.message || "Failed to generate bullets"
+  });
+}
 });
+
 
 export default router;
