@@ -64,3 +64,4 @@ export const aiAPI = {
   getResumeSuggestions: (resumeContent: string, jobDescription: string)    =>
     apiClient.post('/ai/resume-suggestions', { resumeContent, jobDescription }),
 };
+export default apiClient;

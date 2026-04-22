@@ -1,16 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
 import { User } from '@/types';
-import { Zap, LayoutDashboard, Briefcase, FileText, LogOut } from 'lucide-react';
+import { Zap, LayoutDashboard, Briefcase, FileText, Calendar, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   user: User | null;
   onLogout: () => void;
 }
 
+// ── Add Calendar to the nav ───────────────────────────────────────────────────
 const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-  { to: '/dashboard/applications', icon: Briefcase, label: 'Applications' },
-  { to: '/dashboard/resume', icon: FileText, label: 'Resume' },
+  { to: '/dashboard',              icon: LayoutDashboard, label: 'Dashboard',    exact: true  },
+  { to: '/dashboard/applications', icon: Briefcase,       label: 'Applications', exact: false },
+  { to: '/dashboard/calendar',     icon: Calendar,        label: 'Calendar',     exact: false },
+  { to: '/dashboard/resume',       icon: FileText,        label: 'Resume',       exact: false },
 ];
 
 export default function Header({ user, onLogout }: HeaderProps) {
@@ -34,9 +36,9 @@ export default function Header({ user, onLogout }: HeaderProps) {
             <Link key={to} to={to}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150"
               style={{
-                background: active ? 'var(--primary-muted)' : 'transparent',
-                color: active ? 'var(--primary)' : 'var(--text-secondary)',
-                border: active ? '1px solid var(--primary-border)' : '1px solid transparent',
+                background:  active ? 'var(--primary-muted)' : 'transparent',
+                color:       active ? 'var(--primary)'       : 'var(--text-secondary)',
+                border:      active ? '1px solid var(--primary-border)' : '1px solid transparent',
                 textDecoration: 'none',
               }}>
               <Icon size={17} />
@@ -55,7 +57,7 @@ export default function Header({ user, onLogout }: HeaderProps) {
           </div>
           <button onClick={onLogout}
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium w-full hover:bg-white/5 transition-colors"
-            style={{ color: 'var(--text-secondary)' }}>
+            style={{ color: 'var(--text-secondary)', border: 'none', background: 'transparent', cursor: 'pointer' }}>
             <LogOut size={16} />Sign out
           </button>
         </div>
