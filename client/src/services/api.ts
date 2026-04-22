@@ -1,17 +1,17 @@
 import axios from 'axios';
-import { JobApplication, Resume, JobStatus } from '../types';
+import { JobApplication, Resume, JobStatus } from '@/types';
 
-const api = axios.create({
-  baseURL: 'http://localhost:3000/api'
-});
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-api.interceptors.request.use((config) => {
+const apiClient = axios.create({ baseURL: API_BASE });
+
+apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-api.interceptors.response.use(
+apiClient.interceptors.response.use(
   (r) => r,
   (err) => {
     if (err.response?.status === 401) {
@@ -22,27 +22,45 @@ api.interceptors.response.use(
   }
 );
 
+// ── Applications ─────────────────────────────────────────────────────────────
 export const applicationsAPI = {
-  getAll:    ()                                => api.get<JobApplication[]>('/applications'),
-  getById:   (id: string)                      => api.get<JobApplication>(`/applications/${id}`),
-  create:    (data: Partial<JobApplication>)   => api.post<JobApplication>('/applications', data),
-  update:    (id: string, data: Partial<JobApplication>) => api.put<JobApplication>(`/applications/${id}`, data),
-  delete:    (id: string)                      => api.delete(`/applications/${id}`),
+  getAll:       ()                                      => apiClient.get<JobApplication[]>('/applications'),
+  getById:      (id: string)                            => apiClient.get<JobApplication>(`/applications/${id}`),
+  create:       (data: Partial<JobApplication>)         => apiClient.post<JobApplication>('/applications', data),
+  update:       (id: string, d: Partial<JobApplication>)=> apiClient.put<JobApplication>(`/applications/${id}`, d),
+  delete:       (id: string)                            => apiClient.delete(`/applications/${id}`),
+  updateStatus: (id: string, status: JobStatus)         => apiClient.patch<JobApplication>(`/applications/${id}/status`, { status }),
 };
 
+// ── Resumes ──────────────────────────────────────────────────────────────────
 export const resumesAPI = {
-  getAll:  ()                              => api.get<Resume[]>('/resumes'),
-  getById: (id: string)                    => api.get<Resume>(`/resumes/${id}`),
-  create:  (data: Partial<Resume>)         => api.post<Resume>('/resumes', data),
-  update:  (id: string, data: Partial<Resume>) => api.put<Resume>(`/resumes/${id}`, data),
-  delete:  (id: string)                    => api.delete(`/resumes/${id}`),
+  getAll:     ()                                 => apiClient.get<Resume[]>('/resumes'),
+  getById:    (id: string)                       => apiClient.get<Resume>(`/resumes/${id}`),
+  // PDF upload — uses FormData
+  upload:     (file: File, title: string)        => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('title', title);
+    return apiClient.post<Resume>('/resumes/upload', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  // legacy text create
+  create:     (data: Partial<Resume>)            => apiClient.post<Resume>('/resumes', data),
+  // rename
+  rename:     (id: string, title: string)        => apiClient.patch<Resume>(`/resumes/${id}`, { title }),
+  // legacy full update
+  update:     (id: string, d: Partial<Resume>)   => apiClient.put<Resume>(`/resumes/${id}`, d),
+  setDefault: (id: string)                       => apiClient.patch<Resume>(`/resumes/${id}/default`),
+  delete:     (id: string)                       => apiClient.delete(`/resumes/${id}`),
+  // get file URL for preview / download
+  fileUrl:    (filepath: string)                 => `${API_BASE}/${filepath}`,
 };
 
+// ── AI ───────────────────────────────────────────────────────────────────────
 export const aiAPI = {
-  parseJobDescription:  (jobDescription: string, resumeContent?: string) =>
-    api.post('/ai/parse-job', { jobDescription, resumeContent }),
-  getResumeSuggestions: (jobDescription: string, resumeContent?: string) =>
-    api.post('/ai/resume-suggestions', { jobDescription, resumeContent: resumeContent ?? '' }),
+  parseJobDescription:  (jobDescription: string)                           =>
+    apiClient.post('/ai/parse-job', { jobDescription }),
+  getResumeSuggestions: (resumeContent: string, jobDescription: string)    =>
+    apiClient.post('/ai/resume-suggestions', { resumeContent, jobDescription }),
 };
-
-export default api;
