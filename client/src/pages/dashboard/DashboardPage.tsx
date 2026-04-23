@@ -141,8 +141,8 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div>
             <p style={{ fontSize: '12px', fontWeight: 700, color: '#a5b4fc', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Pipeline command center</p>
-            <h1 style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text)', marginTop: '6px' }}>Track every stage with real dates</h1>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '8px', maxWidth: '700px' }}>A cleaner, more premium dashboard for resume-linked applications, scheduled interviews, and the next seven days of your job hunt.</p>
+            <h1 style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text)', marginTop: '6px' }}>Everything you need to land your next role</h1>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '8px', maxWidth: '700px' }}>Track applications, manage interviews, and stay organized from one powerful dashboard.</p>
           </div>
           <button onClick={() => { setEditApp(undefined); setDialogOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 18px', borderRadius: '16px', border: '1px solid rgba(129,140,248,0.22)', cursor: 'pointer', background: 'linear-gradient(135deg, #7c3aed, #6366f1)', color: 'white', fontWeight: 800, fontSize: '13px', boxShadow: '0 16px 40px rgba(99,102,241,0.22)' }}>
             <Plus size={14} />

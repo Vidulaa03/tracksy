@@ -68,7 +68,7 @@ function AppCard({ app, onEdit, onDelete, overlay = false }: CardProps) {
             className="drag-handle"
             style={{
               opacity: 0, background: 'none', border: 'none', cursor: 'grab',
-              padding: '4px', color: 'var(--text-muted)', borderRadius: '4px',
+              padding: '2px', marginRight: '-2px', marginTop: '-2px', color: 'var(--text-muted)', borderRadius: '8px',
               touchAction: 'none', display: 'flex', transition: 'opacity 0.15s',
             }}
           >
