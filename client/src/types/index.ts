@@ -19,6 +19,10 @@ export interface JobApplication {
   lastUpdated: string;
   notes: string;
   salaryRange?: string;
+  linkedResumeId?: string | null;
+  linkedResume?: LinkedResumeSummary | null;
+  resumeHistory?: ResumeHistoryEntry[];
+  events?: ApplicationEvent[];
   resumeBullets?: string[];
   parsedData?: {
     companyName?: string;
@@ -31,17 +35,55 @@ export interface JobApplication {
   };
 }
 
+export interface ApplicationEvent {
+  stage: 'Phone Screen' | 'Interview' | 'Offer' | 'Custom';
+  title: string;
+  scheduledAt: string;
+  notes?: string;
+}
+
+export interface LinkedResumeSummary {
+  _id: string;
+  title: string;
+  originalName?: string;
+  filepath?: string;
+  atsScore?: number;
+  updatedAt?: string;
+  tags?: string[];
+  targetRole?: string;
+}
+
+export interface ResumeHistoryEntry {
+  _id: string;
+  changedAt: string;
+  oldResume: { _id: string; title: string } | null;
+  newResume: { _id: string; title: string } | null;
+}
+
+export type ExperienceLevel = 'student' | 'fresher' | 'junior' | 'mid' | 'senior' | 'lead';
+
 export interface Resume {
   _id: string;
   userId: string;
   title: string;
+  targetRole?: string;
+  skills?: string[];
+  experienceLevel?: ExperienceLevel;
+  tags?: string[];
   content?: string;       // legacy text-based resumes
   filename?: string;
   originalName?: string;
   filepath?: string;      // e.g. uploads/resumes/xxx.pdf
   size?: number;          // bytes
   mimeType?: string;
+  atsScore?: number;
   isDefault: boolean;
+  lastUsedAt?: string | null;
+  linkedApplicationsCount?: number;
+  applicationsUsedIn?: number;
+  interviewCount?: number;
+  offerCount?: number;
+  successRate?: number;
   createdAt: string;
   updatedAt: string;
 }

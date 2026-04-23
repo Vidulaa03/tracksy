@@ -1,96 +1,73 @@
-import { useState, useEffect } from 'react';
-import { applicationsAPI } from '../../services/api';
-import { JobApplication, JobStatus, JOB_STATUSES } from '../../types';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertCircle, ArrowUpRight, Briefcase, CalendarClock, FileText, Link2, PhoneCall, Plus } from 'lucide-react';
+
 import KanbanBoard from '../../components/KanbanBoard';
 import ApplicationDialog from '../../components/ApplicationDialog';
-import { Plus, Briefcase, TrendingUp, PhoneCall, Star, AlertCircle } from 'lucide-react';
+import ScheduleStageModal from '../../components/ScheduleStageModal';
+import { applicationsAPI } from '../../services/api';
+import { ApplicationEvent, JobApplication, JobStatus } from '../../types';
 
-/* ── Skeleton loaders ──────────────────────────────────────────────────────── */
-function StatSkeleton() {
-  return (
-    <div style={{
-      background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: '14px', padding: '20px',
-    }}>
-      <div className="skeleton" style={{ height: '13px', width: '100px', marginBottom: '14px' }} />
-      <div className="skeleton" style={{ height: '32px', width: '56px' }} />
-    </div>
-  );
-}
-
-function KanbanSkeleton() {
-  return (
-    <div style={{ display: 'flex', gap: '12px' }}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} style={{ width: '272px', minWidth: '272px' }}>
-          <div className="skeleton" style={{ height: '40px', borderRadius: '10px', marginBottom: '10px' }} />
-          <div className="skeleton" style={{ height: '110px', borderRadius: '12px', marginBottom: '8px' }} />
-          <div className="skeleton" style={{ height: '88px',  borderRadius: '12px' }} />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ── Stat card ─────────────────────────────────────────────────────────────── */
 function StatCard({
-  label, value, color, icon: Icon,
+  label,
+  value,
+  helper,
+  icon: Icon,
+  accent,
 }: {
-  label: string; value: number; color: string; icon: React.ElementType;
+  label: string;
+  value: number | string;
+  helper: string;
+  icon: React.ElementType;
+  accent: string;
 }) {
   return (
-    <div style={{
-      background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: '14px', padding: '20px',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{label}</span>
-        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Icon size={15} style={{ color }} />
+    <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '22px', padding: '22px', boxShadow: '0 18px 48px rgba(0,0,0,0.22)' }}>
+      <div style={{ position: 'absolute', inset: 'auto -40px -40px auto', width: '120px', height: '120px', background: `${accent}18`, filter: 'blur(20px)', borderRadius: '999px' }} />
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+        <div>
+          <p style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</p>
+          <p style={{ fontSize: '34px', fontWeight: 900, color: 'var(--text)', marginTop: '8px', lineHeight: 1 }}>{value}</p>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: 1.5 }}>{helper}</p>
+        </div>
+        <div style={{ width: '42px', height: '42px', borderRadius: '16px', background: `${accent}18`, border: `1px solid ${accent}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Icon size={18} style={{ color: accent }} />
         </div>
       </div>
-      <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text)' }}>{value}</div>
     </div>
   );
 }
 
-/* ── Empty state ───────────────────────────────────────────────────────────── */
-function EmptyState({ onAdd }: { onAdd: () => void }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '64px 0', gap: '16px' }}>
-      <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--primary-muted)', border: '1px solid var(--primary-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Briefcase size={24} style={{ color: 'var(--primary)' }} />
-      </div>
-      <div style={{ textAlign: 'center' }}>
-        <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: '4px', fontSize: '15px' }}>No applications yet</p>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Add your first one to start tracking your pipeline</p>
-      </div>
-      <button onClick={onAdd}
-        style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer', background: 'var(--primary)', color: 'white', fontWeight: 600, fontSize: '13px' }}>
-        <Plus size={14} />Add first application
-      </button>
-    </div>
-  );
+function mapStatusToStage(status: JobStatus): ApplicationEvent['stage'] | null {
+  if (status === 'phone_screen') return 'Phone Screen';
+  if (status === 'interview') return 'Interview';
+  if (status === 'offer') return 'Offer';
+  return null;
 }
 
-/* ── Main page ─────────────────────────────────────────────────────────────── */
 export default function DashboardPage() {
-  const [apps,        setApps]        = useState<JobApplication[]>([]);
-  const [loading,     setLoading]     = useState(true);
-  const [error,       setError]       = useState('');
-  const [dialogOpen,  setDialogOpen]  = useState(false);
-  const [editApp,     setEditApp]     = useState<JobApplication | undefined>();
+  const [apps, setApps] = useState<JobApplication[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editApp, setEditApp] = useState<JobApplication | undefined>();
+  const [scheduleState, setScheduleState] = useState<{ appId: string; stage: ApplicationEvent['stage']; companyName: string; position: string } | null>(null);
+  const [scheduleSaving, setScheduleSaving] = useState(false);
 
   async function load() {
     try {
       setLoading(true);
-      const r = await applicationsAPI.getAll();
-      setApps(Array.isArray(r.data) ? r.data : (r.data as any).data ?? []);
-    } catch { setError('Failed to load applications'); }
-    finally  { setLoading(false); }
+      const response = await applicationsAPI.getAll();
+      setApps(Array.isArray(response.data) ? response.data : []);
+    } catch {
+      setError('Failed to load applications');
+    } finally {
+      setLoading(false);
+    }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   async function handleAdd(data: Partial<JobApplication>) {
     await applicationsAPI.create(data);
@@ -103,97 +80,180 @@ export default function DashboardPage() {
     await load();
   }
 
-  // Optimistic update — persist to server, revert on failure
   async function handleStatusChange(id: string, status: JobStatus) {
-    setApps((prev) => prev.map((a) => (a._id === id ? { ...a, status } : a)));
-    try   { await applicationsAPI.update(id, { status }); }
-    catch { await load(); }
+    const target = apps.find((app) => app._id === id);
+    setApps((prev) => prev.map((app) => (app._id === id ? { ...app, status } : app)));
+    try {
+      await applicationsAPI.update(id, { status });
+      const stage = mapStatusToStage(status);
+      if (stage && target) {
+        setScheduleState({ appId: id, stage, companyName: target.companyName, position: target.position });
+      }
+      await load();
+    } catch {
+      await load();
+    }
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this application?')) return;
     await applicationsAPI.delete(id);
-    setApps((prev) => prev.filter((a) => a._id !== id));
+    setApps((prev) => prev.filter((app) => app._id !== id));
   }
 
-  const stats = {
-    total:      apps.length,
-    active:     apps.filter((a) => !['rejected', 'offer'].includes(a.status)).length,
-    interviews: apps.filter((a) => a.status === 'interview').length,
-    offers:     apps.filter((a) => a.status === 'offer').length,
-  };
+  const stats = useMemo(() => {
+    const total = apps.length;
+    const linked = apps.filter((app) => !!app.linkedResumeId).length;
+    const upcoming = apps.flatMap((app) => (app.events ?? []).map((event) => ({ ...event, app })))
+      .filter((event) => {
+        const when = new Date(event.scheduledAt).getTime();
+        const now = Date.now();
+        const in7Days = now + 7 * 24 * 60 * 60 * 1000;
+        return when >= now && when <= in7Days;
+      }).length;
+    const offers = apps.filter((app) => app.status === 'offer').length;
+    const responseRate = total ? Math.round(((apps.filter((app) => ['phone_screen', 'interview', 'offer'].includes(app.status)).length) / total) * 100) : 0;
+    return { total, linked, upcoming, offers, responseRate };
+  }, [apps]);
+
+  const nextSevenDays = useMemo(() => {
+    return apps
+      .flatMap((app) => (app.events ?? []).map((event, index) => ({ ...event, appId: app._id, companyName: app.companyName, position: app.position, index })))
+      .filter((event) => {
+        const when = new Date(event.scheduledAt).getTime();
+        const now = Date.now();
+        const in7Days = now + 7 * 24 * 60 * 60 * 1000;
+        return when >= now && when <= in7Days;
+      })
+      .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt))
+      .slice(0, 6);
+  }, [apps]);
+
+  const mostUsedResume = apps.reduce<Record<string, number>>((acc, app) => {
+    if (app.linkedResume?.title) acc[app.linkedResume.title] = (acc[app.linkedResume.title] ?? 0) + 1;
+    return acc;
+  }, {});
+  const topResume = Object.entries(mostUsedResume).sort((a, b) => b[1] - a[1])[0];
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-      {/* ── page header ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <div>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Dashboard</h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Drag cards between columns to update status
-          </p>
+    <>
+      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+          <div>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: '#a5b4fc', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Pipeline command center</p>
+            <h1 style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text)', marginTop: '6px' }}>Track every stage with real dates</h1>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '8px', maxWidth: '700px' }}>A cleaner, more premium dashboard for resume-linked applications, scheduled interviews, and the next seven days of your job hunt.</p>
+          </div>
+          <button onClick={() => { setEditApp(undefined); setDialogOpen(true); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 18px', borderRadius: '16px', border: '1px solid rgba(129,140,248,0.22)', cursor: 'pointer', background: 'linear-gradient(135deg, #7c3aed, #6366f1)', color: 'white', fontWeight: 800, fontSize: '13px', boxShadow: '0 16px 40px rgba(99,102,241,0.22)' }}>
+            <Plus size={14} />
+            Add Application
+          </button>
         </div>
-        <button
-          onClick={() => { setEditApp(undefined); setDialogOpen(true); }}
-          style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer', background: 'var(--primary)', color: 'white', fontWeight: 600, fontSize: '13px' }}
-        >
-          <Plus size={14} />Add Application
-        </button>
-      </div>
 
-      {/* ── error banner ── */}
-      {error && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderRadius: '10px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171', fontSize: '13px' }}>
-          <AlertCircle size={14} />{error}
-          <button onClick={() => setError('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', opacity: 0.6 }}>✕</button>
-        </div>
-      )}
-
-      {/* ── stat cards ── */}
-      {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-          {[1, 2, 3, 4].map((i) => <StatSkeleton key={i} />)}
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-          <StatCard label="Total Applied"   value={stats.total}      color="#6366f1" icon={Briefcase}  />
-          <StatCard label="Active Pipeline" value={stats.active}     color="#38bdf8" icon={TrendingUp} />
-          <StatCard label="Interviews"      value={stats.interviews}  color="#fbbf24" icon={PhoneCall} />
-          <StatCard label="Offers"          value={stats.offers}     color="#34d399" icon={Star}       />
-        </div>
-      )}
-
-      {/* ── kanban board ── */}
-      <div style={{
-        background: 'var(--surface)', border: '1px solid var(--border)',
-        borderRadius: '14px', padding: '20px',
-      }}>
-        <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', marginBottom: '18px' }}>
-          Applications Pipeline
-        </h2>
-
-        {loading ? (
-          <KanbanSkeleton />
-        ) : apps.length === 0 ? (
-          <EmptyState onAdd={() => { setEditApp(undefined); setDialogOpen(true); }} />
-        ) : (
-          <KanbanBoard
-            applications={apps}
-            onStatusChange={handleStatusChange}
-            onEdit={(app) => { setEditApp(app); setDialogOpen(true); }}
-            onDelete={handleDelete}
-          />
+        {error && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderRadius: '14px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171', fontSize: '13px' }}>
+            <AlertCircle size={14} />
+            {error}
+          </div>
         )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '14px' }}>
+          <StatCard label="Total Applied" value={stats.total} helper="All tracked applications" icon={Briefcase} accent="#8b5cf6" />
+          <StatCard label="Resume Linked" value={stats.linked} helper="Exact variants attached" icon={Link2} accent="#38bdf8" />
+          <StatCard label="Upcoming" value={stats.upcoming} helper="Events in the next 7 days" icon={CalendarClock} accent="#fbbf24" />
+          <StatCard label="Offers" value={stats.offers} helper="Final-stage wins in pipeline" icon={PhoneCall} accent="#34d399" />
+          <StatCard label="Response Rate" value={`${stats.responseRate}%`} helper={topResume ? `${topResume[0]} leads usage` : 'Track which resume converts'} icon={FileText} accent="#f97316" />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1.45fr 0.55fr', gap: '18px', alignItems: 'start' }}>
+          <div style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px', padding: '20px', boxShadow: '0 18px 48px rgba(0,0,0,0.18)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>Applications Pipeline</h2>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Sticky columns, smoother drag states, and stage scheduling prompts when you move cards.</p>
+              </div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 12px', borderRadius: '999px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                <ArrowUpRight size={13} />
+                Drag to progress
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="skeleton" style={{ height: '580px', borderRadius: '18px' }} />
+            ) : apps.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '70px 20px', gap: '16px' }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.24)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Briefcase size={26} style={{ color: '#c4b5fd' }} />
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontWeight: 800, color: 'var(--text)', marginBottom: '6px', fontSize: '17px' }}>No applications yet</p>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Add your first one and start attaching resumes plus real interview dates.</p>
+                </div>
+              </div>
+            ) : (
+              <KanbanBoard
+                applications={apps}
+                onStatusChange={handleStatusChange}
+                onEdit={(app) => { setEditApp(app); setDialogOpen(true); }}
+                onDelete={handleDelete}
+              />
+            )}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ background: 'linear-gradient(180deg, rgba(139,92,246,0.12), rgba(139,92,246,0.03))', border: '1px solid rgba(139,92,246,0.18)', borderRadius: '24px', padding: '18px' }}>
+              <p style={{ fontSize: '12px', fontWeight: 700, color: '#c4b5fd', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Next 7 days</p>
+              <h3 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', marginTop: '8px' }}>{nextSevenDays.length} upcoming milestone{nextSevenDays.length === 1 ? '' : 's'}</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
+                {nextSevenDays.length === 0 ? (
+                  <div style={{ padding: '14px', borderRadius: '14px', border: '1px dashed rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    No scheduled interviews or calls in the next week yet.
+                  </div>
+                ) : (
+                  nextSevenDays.map((event, index) => (
+                    <div key={`${event.appId}-${index}`} style={{ padding: '13px 14px', borderRadius: '16px', background: 'rgba(10,14,22,0.36)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <p style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)' }}>{event.companyName}</p>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '3px' }}>{event.title}</p>
+                      <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '7px' }}>{new Date(event.scheduledAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ApplicationDialog
+          open={dialogOpen}
+          onClose={() => { setDialogOpen(false); setEditApp(undefined); }}
+          onSubmit={editApp ? handleEditSubmit : handleAdd}
+          editApp={editApp}
+        />
       </div>
 
-      {/* ── add / edit dialog ── */}
-      <ApplicationDialog
-        open={dialogOpen}
-        onClose={() => { setDialogOpen(false); setEditApp(undefined); }}
-        onSubmit={editApp ? handleEditSubmit : handleAdd}
-        editApp={editApp}
+      <ScheduleStageModal
+        open={!!scheduleState}
+        stage={scheduleState?.stage ?? 'Interview'}
+        companyName={scheduleState?.companyName}
+        position={scheduleState?.position}
+        saving={scheduleSaving}
+        onClose={() => setScheduleState(null)}
+        onSkip={() => setScheduleState(null)}
+        onSave={async (event) => {
+          if (!scheduleState) return;
+          setScheduleSaving(true);
+          try {
+            const app = apps.find((item) => item._id === scheduleState.appId);
+            const nextEvents = [...(app?.events ?? [])];
+            nextEvents.push(event);
+            await applicationsAPI.update(scheduleState.appId, { events: nextEvents });
+            setScheduleState(null);
+            await load();
+          } finally {
+            setScheduleSaving(false);
+          }
+        }}
       />
-    </div>
+    </>
   );
 }

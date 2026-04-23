@@ -5,19 +5,19 @@
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
 :root {
-  --bg:              #080c14;
-  --surface:         #0f1623;
-  --surface-2:       #161e2e;
-  --surface-3:       #1c2638;
+  --bg:              #07101c;
+  --surface:         #0e1727;
+  --surface-2:       #141f32;
+  --surface-3:       #1a2740;
   --border:          rgba(255, 255, 255, 0.06);
   --border-strong:   rgba(255, 255, 255, 0.12);
-  --primary:         #6366f1;
-  --primary-hover:   #4f46e5;
-  --primary-muted:   rgba(99, 102, 241, 0.12);
-  --primary-border:  rgba(99, 102, 241, 0.30);
+  --primary:         #7c3aed;
+  --primary-hover:   #6d28d9;
+  --primary-muted:   rgba(124, 58, 237, 0.12);
+  --primary-border:  rgba(124, 58, 237, 0.30);
   --text:            #f0f4ff;
-  --text-secondary:  #8892a4;
-  --text-muted:      #4b5563;
+  --text-secondary:  #95a3bd;
+  --text-muted:      #5d6880;
   --radius:          10px;
   --radius-lg:       14px;
   --shadow:          0 4px 24px rgba(0, 0, 0, 0.4);
@@ -29,7 +29,10 @@
 
 /* ── Base ──────────────────────────────────────────────────────────────────── */
 body {
-  background:               var(--bg);
+  background:
+    radial-gradient(circle at top left, rgba(124,58,237,0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(56,189,248,0.09), transparent 24%),
+    var(--bg);
   color:                    var(--text);
   font-family:              'DM Sans', system-ui, sans-serif;
   font-size:                15px;

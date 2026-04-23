@@ -217,7 +217,7 @@ export default function ExportPage() {
                 ))}
               </div>
               <button onClick={handleCSV}
-                style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '11px', borderRadius: '10px', border: 'none', background: 'rgba(52,211,153,0.12)', color: '#34d399', fontWeight: 600, fontSize: '14px', cursor: 'pointer', justifyContent: 'center', border: '1px solid rgba(52,211,153,0.3)' } as any}>
+                style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '11px', borderRadius: '10px', background: 'rgba(52,211,153,0.12)', color: '#34d399', fontWeight: 600, fontSize: '14px', cursor: 'pointer', justifyContent: 'center', border: '1px solid rgba(52,211,153,0.3)' } as any}>
                 <Download size={16} />Download CSV
               </button>
             </div>

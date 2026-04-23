@@ -12,7 +12,7 @@ import {
   JobApplication, JobStatus, JOB_STATUSES, getStatusConfig,
 } from '../types';
 import {
-  GripVertical, Pencil, Trash2, Building2, Calendar, ExternalLink,
+  GripVertical, Pencil, Trash2, Building2, Calendar, ExternalLink, FileText,
 } from 'lucide-react';
 
 /* ─────────────────────── helpers ─────────────────────────────────────────── */
@@ -42,11 +42,11 @@ function AppCard({ app, onEdit, onDelete, overlay = false }: CardProps) {
       <div
         className="kcard"
         style={{
-          background:    overlay ? 'var(--surface-3)' : 'var(--surface-2)',
-          border:        `1px solid ${overlay ? 'rgba(99,102,241,0.5)' : 'var(--border-strong)'}`,
-          borderRadius:  '12px',
-          padding:       '14px',
-          boxShadow:     overlay ? '0 16px 48px rgba(0,0,0,0.7)' : 'var(--shadow-sm)',
+          background:    overlay ? 'rgba(23,31,48,0.98)' : 'linear-gradient(180deg, rgba(22,30,46,0.98), rgba(15,22,35,0.98))',
+          border:        `1px solid ${overlay ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.08)'}`,
+          borderRadius:  '18px',
+          padding:       '16px',
+          boxShadow:     overlay ? '0 20px 56px rgba(0,0,0,0.7)' : '0 14px 30px rgba(0,0,0,0.18)',
           transform:     overlay ? 'rotate(2deg) scale(1.02)' : undefined,
           cursor:        'default',
           position:      'relative',
@@ -101,6 +101,13 @@ function AppCard({ app, onEdit, onDelete, overlay = false }: CardProps) {
         )}
 
         {/* footer */}
+        {app.linkedResume?.title && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '10px', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
+            <FileText size={11} style={{ color: 'var(--text-muted)' }} />
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{app.linkedResume.title}</span>
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <Calendar size={11} style={{ color: 'var(--text-muted)' }} />
@@ -155,12 +162,13 @@ function KanbanColumn({ status, apps, onEdit, onDelete }: ColProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status.value });
 
   return (
-    <div style={{ width: '272px', minWidth: '272px', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ width: '298px', minWidth: '298px', display: 'flex', flexDirection: 'column' }}>
       {/* column header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '10px 12px', borderRadius: '10px', marginBottom: '10px',
+        padding: '12px 14px', borderRadius: '16px', marginBottom: '12px',
         background: `${status.hex}12`, border: `1px solid ${status.hex}28`,
+        position: 'sticky', top: 0, zIndex: 5, backdropFilter: 'blur(10px)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: status.hex, display: 'block' }} />
@@ -178,10 +186,10 @@ function KanbanColumn({ status, apps, onEdit, onDelete }: ColProps) {
       <div
         ref={setNodeRef}
         style={{
-          flex: 1, minHeight: '200px', padding: '6px', borderRadius: '10px',
+          flex: 1, minHeight: '260px', padding: '8px', borderRadius: '18px',
           display: 'flex', flexDirection: 'column', gap: '8px',
-          background: isOver ? `${status.hex}09` : 'rgba(255,255,255,0.012)',
-          border:     `2px dashed ${isOver ? status.hex + '55' : 'transparent'}`,
+          background: isOver ? `${status.hex}10` : 'rgba(255,255,255,0.018)',
+          border:     `1px solid ${isOver ? status.hex + '55' : 'rgba(255,255,255,0.04)'}`,
           transition: 'all 0.15s',
         }}
       >
@@ -254,7 +262,7 @@ export default function KanbanBoard({ applications, onStatusChange, onEdit, onDe
   const moved = local.find((x) => x._id === a.id);
   if (!moved) return;
 
-  const newStatus = String(over.id);
+  const newStatus = String(over.id) as JobStatus;
 
   if (moved.status !== newStatus) {
     const updated = local.map((x) =>
@@ -279,7 +287,7 @@ export default function KanbanBoard({ applications, onStatusChange, onEdit, onDe
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '16px', minHeight: '520px' }}>
+      <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px', minHeight: '560px' }}>
         {JOB_STATUSES.map((s) => (
           <KanbanColumn
             key={s.value}

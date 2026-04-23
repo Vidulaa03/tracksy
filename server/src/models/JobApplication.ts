@@ -11,6 +11,13 @@ export interface IJobApplication extends Document {
   lastUpdated: Date;
   notes?: string;
   salaryRange?: string;
+  linkedResumeId?: mongoose.Types.ObjectId | null;
+  events: Array<{
+    stage: 'Phone Screen' | 'Interview' | 'Offer' | 'Custom';
+    title: string;
+    scheduledAt: Date;
+    notes?: string;
+  }>;
   resumeBullets?: string[];
   parsedData?: {
     companyName?: string;
@@ -42,6 +49,17 @@ const jobApplicationSchema = new Schema<IJobApplication>(
     appliedDate: { type: Date, default: Date.now },
     notes:       { type: String, default: '' },
     salaryRange: { type: String },
+    linkedResumeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Resume', default: null },
+    events: [{
+      stage: {
+        type: String,
+        enum: ['Phone Screen', 'Interview', 'Offer', 'Custom'],
+        required: true,
+      },
+      title: { type: String, required: true },
+      scheduledAt: { type: Date, required: true },
+      notes: { type: String, default: '' },
+    }],
     resumeBullets: [String],
     parsedData: {
       companyName:      String,
