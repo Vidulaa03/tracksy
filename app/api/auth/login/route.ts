@@ -14,8 +14,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await connectDB();
-
     const { email, password } = await request.json();
 
     // Validate input
@@ -33,6 +31,27 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    if (isDemoMode()) {
+      const demoEmail = email.toLowerCase();
+      const token = createToken('demo-user-123', demoEmail);
+      await setAuthCookie(token);
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Demo login successful',
+          user: {
+            id: 'demo-user-123',
+            email: demoEmail,
+            name: 'Demo User',
+          },
+        },
+        { status: 200 }
+      );
+    }
+
+    await connectDB();
 
     // Find user by email
     const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');

@@ -1,4 +1,4 @@
-import { getResumeSuggestions } from './openaiService';
+import { getResumeSuggestions } from './groqService';
 
 export async function generateResumeSuggestions(
   resumeContent: string,

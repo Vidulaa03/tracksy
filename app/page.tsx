@@ -74,7 +74,7 @@ export default function HomePage() {
             <Briefcase className="text-blue-400 mb-4" size={32} />
             <h3 className="text-xl font-bold text-white mb-3">Kanban Board</h3>
             <p className="text-slate-400">
-              Organize applications by status: Applied, Interviewing, Accepted, or Rejected.
+              Organize applications by status: Applied, Screening, Interview, Accepted, or Archived.
             </p>
           </div>
 

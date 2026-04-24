@@ -31,6 +31,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (isDemoMode()) {
+      const demoEmail = email.toLowerCase();
+      const token = createToken('demo-user-123', demoEmail);
+      await setAuthCookie(token);
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Demo account created successfully',
+          user: {
+            id: 'demo-user-123',
+            email: demoEmail,
+            name: name || 'Demo User',
+          },
+        },
+        { status: 201 }
+      );
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {

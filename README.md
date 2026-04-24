@@ -7,8 +7,8 @@ An AI-assisted job application tracking system with a modern React frontend and 
 - **Kanban Board**: Organize job applications by status (Applied, Interviewing, Accepted, Rejected)
 - **Application Management**: Create, read, update, and delete job applications
 - **Resume Manager**: Create and manage multiple resume versions
-- **AI Insights**: Analyze job descriptions to extract key requirements (structure ready for OpenAI)
-- **Resume Suggestions**: Get recommendations to optimize your resume (structure ready for OpenAI)
+- **AI Insights**: Analyze job descriptions to extract key requirements using Groq
+- **Resume Suggestions**: Get recommendations to optimize your resume using Groq
 - **User Authentication**: Secure signup/login with JWT tokens and bcrypt hashing
 - **Responsive Design**: Mobile-friendly interface with Tailwind CSS
 
@@ -42,7 +42,7 @@ An AI-assisted job application tracking system with a modern React frontend and 
 - Node.js 18+
 - npm or pnpm
 - MongoDB Atlas account (or local MongoDB)
-- (Optional) OpenAI API key for AI features
+- (Optional) Groq API key for AI features
 
 ### Installation
 
@@ -76,8 +76,9 @@ An AI-assisted job application tracking system with a modern React frontend and 
    PORT=3000
    NODE_ENV=development
 
-   # OpenAI (optional)
-   OPENAI_API_KEY=sk-your-api-key
+   # Groq (optional)
+   GROQ_API_KEY=gsk-your-api-key
+   GROQ_MODEL=llama-3.3-70b-versatile
    ```
 
 5. **Run the development server**
@@ -340,22 +341,20 @@ Frontend uses:
 
 ## Integrating Real AI Features
 
-Currently using mock data for AI endpoints. To use OpenAI:
+AI endpoints now use Groq through the OpenAI-compatible SDK. To configure them:
 
 1. **Get API Key**
    ```bash
-   # Visit https://platform.openai.com/api-keys
+   # Visit https://console.groq.com/keys
    # Create API key and add to .env.local
-   OPENAI_API_KEY=sk-your-key-here
+   GROQ_API_KEY=gsk-your-key-here
+   GROQ_MODEL=llama-3.3-70b-versatile
    ```
 
-2. **Update AI Routes**
-   Edit `server/src/routes/ai.routes.ts` to call OpenAI API instead of returning mock data
-
-3. **Install OpenAI SDK** (optional, if not using it yet)
+2. **Install dependencies** (if not already installed)
    ```bash
    cd server
-   npm install openai
+   npm install
    ```
 
 ## Troubleshooting
@@ -429,7 +428,7 @@ npm run type-check      # Check types without building
 
 ## Future Enhancements
 
-- [ ] Real OpenAI integration for AI insights
+- [x] Groq integration for AI insights
 - [ ] Email notifications for application updates
 - [ ] Calendar integration for interview dates
 - [ ] Job recommendation engine

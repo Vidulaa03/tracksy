@@ -67,9 +67,10 @@ mongodb://localhost:27017/job-tracker
    # Secret key for JWT (generate random string, min 32 chars)
    JWT_SECRET=your-super-secret-key-at-least-32-characters-long
 
-   # OpenAI API Key (optional - leave empty initially)
-   # Get from https://platform.openai.com/api-keys
-   OPENAI_API_KEY=
+   # Groq API Key (optional - leave empty initially)
+   # Get from https://console.groq.com/keys
+   GROQ_API_KEY=
+   GROQ_MODEL=llama-3.3-70b-versatile
 
    # App URL
    NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -122,10 +123,10 @@ The browser should automatically open. If not, navigate to `http://localhost:300
 
 ## Step 6: (Optional) Enable AI Features
 
-To use real AI features with OpenAI:
+To use real AI features with Groq:
 
 1. **Get API Key**
-   - Go to [platform.openai.com](https://platform.openai.com)
+   - Go to [console.groq.com/keys](https://console.groq.com/keys)
    - Sign in or create account
    - Navigate to API keys
    - Create new secret key
@@ -133,13 +134,13 @@ To use real AI features with OpenAI:
 
 2. **Add to .env.local**
    ```env
-   OPENAI_API_KEY=sk-your-actual-key-here
+   GROQ_API_KEY=gsk-your-actual-key-here
+   GROQ_MODEL=llama-3.3-70b-versatile
    ```
 
-3. **Uncomment API Calls** (optional, for production)
-   - Open `lib/services/openaiService.ts`
-   - Uncomment the OpenAI API call code
-   - Comment out the mock data return statements
+3. **Restart Development Server**
+   - The Express backend reads `process.env.GROQ_API_KEY`
+   - No extra code changes are needed once the env vars are set
 
 4. **Restart Development Server**
    ```bash
@@ -172,7 +173,8 @@ To use real AI features with OpenAI:
    - Add:
      - `MONGODB_URI` (from MongoDB Atlas)
      - `JWT_SECRET` (same as local)
-     - `OPENAI_API_KEY` (optional)
+     - `GROQ_API_KEY` (optional)
+     - `GROQ_MODEL` (optional)
 
 5. **Deploy**
    - Click "Deploy"
@@ -314,6 +316,6 @@ tracksy/
 - Don't commit .env.local to version control (it's in .gitignore)
 - Use HTTPS in production
 - Regularly update dependencies for security patches
-- Keep OpenAI API key private and rotate regularly
+- Keep your Groq API key private and rotate regularly
 
 Good luck with your job search! 🚀

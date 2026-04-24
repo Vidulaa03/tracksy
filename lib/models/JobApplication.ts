@@ -11,7 +11,7 @@ export interface IJobApplication extends Document {
   userId: mongoose.Types.ObjectId;
   jobTitle: string;
   companyName: string;
-  status: 'applied' | 'interviewing' | 'accepted' | 'rejected';
+  status: 'applied' | 'phone_screen' | 'interview' | 'offer' | 'rejected';
   description: string;
   applicationDate: Date;
   notes?: string;
@@ -37,7 +37,7 @@ const JobApplicationSchema = new Schema<IJobApplication>(
     },
     status: {
       type: String,
-      enum: ['applied', 'interviewing', 'accepted', 'rejected'],
+      enum: ['applied', 'phone_screen', 'interview', 'offer', 'rejected'],
       default: 'applied',
     },
     description: {

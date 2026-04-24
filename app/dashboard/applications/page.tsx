@@ -6,7 +6,7 @@ import { JobApplication } from '@/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, Edit2, Trash2, ArrowLeft } from 'lucide-react';
-import { JOB_APPLICATION_STATUSES } from '@/lib/utils/constants';
+import { JOB_APPLICATION_STATUSES, getStatusConfig } from '@/lib/utils/constants';
 
 export default function ApplicationsListPage() {
   const router = useRouter();
@@ -131,7 +131,7 @@ export default function ApplicationsListPage() {
                   )}
                   <div className="flex gap-4 mt-3 text-sm text-slate-500">
                     <span>
-                      Status: <span className="text-white capitalize font-semibold">{application.status}</span>
+                      Status: <span className="text-white capitalize font-semibold">{getStatusConfig(application.status).label}</span>
                     </span>
                     <span>
                       Applied: {new Date(application.applicationDate).toLocaleDateString()}

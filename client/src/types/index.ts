@@ -95,10 +95,10 @@ export interface AuthResponse {
 
 export const JOB_STATUSES: { value: JobStatus; label: string; color: string; hex: string }[] = [
   { value: 'applied',      label: 'Applied',      color: 'sky',     hex: '#38bdf8' },
-  { value: 'phone_screen', label: 'Phone Screen', color: 'violet',  hex: '#a78bfa' },
+  { value: 'phone_screen', label: 'Screening',    color: 'violet',  hex: '#a78bfa' },
   { value: 'interview',    label: 'Interview',    color: 'amber',   hex: '#fbbf24' },
-  { value: 'offer',        label: 'Offer',        color: 'emerald', hex: '#34d399' },
-  { value: 'rejected',     label: 'Rejected',     color: 'rose',    hex: '#f87171' },
+  { value: 'offer',        label: 'Accepted',     color: 'emerald', hex: '#34d399' },
+  { value: 'rejected',     label: 'Archived',     color: 'rose',    hex: '#f87171' },
 ];
 
 export function getStatusConfig(status: JobStatus) {

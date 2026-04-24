@@ -1,4 +1,4 @@
-import { parseJobDescription } from './openaiService';
+import { parseJobDescription } from './groqService';
 
 export async function parseAndStoreJobData(jobDescription: string) {
   try {

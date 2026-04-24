@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ArrowUpRight, Briefcase, CalendarClock, FileText, Link2, PhoneCall, Plus } from 'lucide-react';
+import { AlertCircle, ArrowUpRight, Briefcase, FileText, Link2, PhoneCall, Plus } from 'lucide-react';
 
 import KanbanBoard from '../../components/KanbanBoard';
 import ApplicationDialog from '../../components/ApplicationDialog';
@@ -104,29 +104,9 @@ export default function DashboardPage() {
   const stats = useMemo(() => {
     const total = apps.length;
     const linked = apps.filter((app) => !!app.linkedResumeId).length;
-    const upcoming = apps.flatMap((app) => (app.events ?? []).map((event) => ({ ...event, app })))
-      .filter((event) => {
-        const when = new Date(event.scheduledAt).getTime();
-        const now = Date.now();
-        const in7Days = now + 7 * 24 * 60 * 60 * 1000;
-        return when >= now && when <= in7Days;
-      }).length;
     const offers = apps.filter((app) => app.status === 'offer').length;
     const responseRate = total ? Math.round(((apps.filter((app) => ['phone_screen', 'interview', 'offer'].includes(app.status)).length) / total) * 100) : 0;
-    return { total, linked, upcoming, offers, responseRate };
-  }, [apps]);
-
-  const nextSevenDays = useMemo(() => {
-    return apps
-      .flatMap((app) => (app.events ?? []).map((event, index) => ({ ...event, appId: app._id, companyName: app.companyName, position: app.position, index })))
-      .filter((event) => {
-        const when = new Date(event.scheduledAt).getTime();
-        const now = Date.now();
-        const in7Days = now + 7 * 24 * 60 * 60 * 1000;
-        return when >= now && when <= in7Days;
-      })
-      .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt))
-      .slice(0, 6);
+    return { total, linked, offers, responseRate };
   }, [apps]);
 
   const mostUsedResume = apps.reduce<Record<string, number>>((acc, app) => {
@@ -157,16 +137,14 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '14px' }}>
           <StatCard label="Total Applied" value={stats.total} helper="All tracked applications" icon={Briefcase} accent="#8b5cf6" />
           <StatCard label="Resume Linked" value={stats.linked} helper="Exact variants attached" icon={Link2} accent="#38bdf8" />
-          <StatCard label="Upcoming" value={stats.upcoming} helper="Events in the next 7 days" icon={CalendarClock} accent="#fbbf24" />
           <StatCard label="Offers" value={stats.offers} helper="Final-stage wins in pipeline" icon={PhoneCall} accent="#34d399" />
           <StatCard label="Response Rate" value={`${stats.responseRate}%`} helper={topResume ? `${topResume[0]} leads usage` : 'Track which resume converts'} icon={FileText} accent="#f97316" />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.45fr 0.55fr', gap: '18px', alignItems: 'start' }}>
-          <div style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px', padding: '20px', boxShadow: '0 18px 48px rgba(0,0,0,0.18)' }}>
+        <div style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px', padding: '20px', boxShadow: '0 18px 48px rgba(0,0,0,0.18)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <div>
                 <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>Applications Pipeline</h2>
@@ -199,28 +177,6 @@ export default function DashboardPage() {
               />
             )}
           </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ background: 'linear-gradient(180deg, rgba(139,92,246,0.12), rgba(139,92,246,0.03))', border: '1px solid rgba(139,92,246,0.18)', borderRadius: '24px', padding: '18px' }}>
-              <p style={{ fontSize: '12px', fontWeight: 700, color: '#c4b5fd', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Next 7 days</p>
-              <h3 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text)', marginTop: '8px' }}>{nextSevenDays.length} upcoming milestone{nextSevenDays.length === 1 ? '' : 's'}</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
-                {nextSevenDays.length === 0 ? (
-                  <div style={{ padding: '14px', borderRadius: '14px', border: '1px dashed rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    No scheduled interviews or calls in the next week yet.
-                  </div>
-                ) : (
-                  nextSevenDays.map((event, index) => (
-                    <div key={`${event.appId}-${index}`} style={{ padding: '13px 14px', borderRadius: '16px', background: 'rgba(10,14,22,0.36)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <p style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)' }}>{event.companyName}</p>
-                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '3px' }}>{event.title}</p>
-                      <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '7px' }}>{new Date(event.scheduledAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
         </div>
 
         <ApplicationDialog
@@ -229,7 +185,6 @@ export default function DashboardPage() {
           onSubmit={editApp ? handleEditSubmit : handleAdd}
           editApp={editApp}
         />
-      </div>
 
       <ScheduleStageModal
         open={!!scheduleState}

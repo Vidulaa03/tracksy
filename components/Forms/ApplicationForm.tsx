@@ -108,7 +108,7 @@ export function ApplicationForm({ application, onSubmit, isLoading = false }: Ap
       const res = await fetch('/api/ai/resume-suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobDescription: formData.description }),
+        body: JSON.stringify({ jobDescription: formData.description, resumeContent: '' }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);

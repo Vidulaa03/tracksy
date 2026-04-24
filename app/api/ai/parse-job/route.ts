@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 
 // Placeholder AI parsing endpoint
-// This will be connected to OpenAI API when the key is provided
+// This can be connected to Groq via the OpenAI-compatible SDK when needed
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -22,8 +22,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mock response - replace with OpenAI API call when key is available
+    // Mock response - replace with a Groq API call when key is available
     const mockParsedData = {
+      companyName: 'Acme Cloud',
+      role: 'Senior Frontend Engineer',
+      requiredSkills: ['React', 'TypeScript', 'Next.js', 'REST APIs'],
+      niceToHaveSkills: ['GraphQL', 'Docker', 'AWS'],
+      seniority: 'Senior',
+      location: 'Remote',
+      salaryRange: '$110,000 - $135,000',
       keyRequirements: [
         'React expertise',
         '3+ years experience',
@@ -33,7 +40,6 @@ export async function POST(request: NextRequest) {
       ],
       skills: ['React', 'TypeScript', 'JavaScript', 'Node.js', 'CSS', 'HTML'],
       experience: '3+ years in web development',
-      salaryRange: '$80,000 - $120,000',
     };
 
     return NextResponse.json(

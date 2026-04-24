@@ -8,6 +8,7 @@ import { AIInsights } from '@/components/AI/AIInsights';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
+import { getStatusConfig } from '@/lib/utils/constants';
 
 export default function ApplicationDetailPage() {
   const router = useRouter();
@@ -156,7 +157,7 @@ export default function ApplicationDetailPage() {
             <div className="space-y-4">
               <div>
                 <p className="text-slate-500 text-sm">Status</p>
-                <p className="text-white font-semibold capitalize">{application.status}</p>
+                <p className="text-white font-semibold">{getStatusConfig(application.status).label}</p>
               </div>
               <div>
                 <p className="text-slate-500 text-sm">Applied Date</p>

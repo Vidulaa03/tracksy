@@ -67,6 +67,9 @@ export interface ParsedJobData {
   seniority: string;
   location: string;
   salaryRange?: string;
+  keyRequirements?: string[];
+  skills?: string[];
+  experience?: string;
 }
 
 export interface ParseJobResponse {

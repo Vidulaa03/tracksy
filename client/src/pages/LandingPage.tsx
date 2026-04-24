@@ -9,9 +9,9 @@ export default function LandingPage() {
   useEffect(() => { if (isAuthenticated) navigate('/dashboard'); }, [isAuthenticated]);
 
   const features = [
-    { icon: LayoutDashboard, title: '5-column Kanban',     desc: 'Applied → Phone Screen → Interview → Offer → Rejected. Drag cards to move them instantly.',              color: '#6366f1' },
+    { icon: LayoutDashboard, title: '5-column Kanban',     desc: 'Applied → Screening → Interview → Accepted → Archived. Drag cards to move them instantly.',               color: '#6366f1' },
     { icon: Sparkles,        title: 'AI Job Parser',       desc: 'Paste a job description — AI extracts company, role, salary, and generates 4 tailored resume bullets.', color: '#a78bfa' },
-    { icon: FileText,        title: 'Resume Manager',      desc: 'Store multiple resume versions. Pull AI bullets into the right resume with one click.',                  color: '#34d399' },
+    { icon: FileText,        title: 'Resume Manager',      desc: 'Store multiple resume versions. Pull AI bullets into the right resume with one click.',                   color: '#34d399' },
   ];
 
   return (

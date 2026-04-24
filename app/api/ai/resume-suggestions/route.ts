@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 
 // Placeholder resume suggestions endpoint
-// This will be connected to OpenAI API when the key is provided
+// This can be connected to Groq via the OpenAI-compatible SDK when needed
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -12,17 +12,17 @@ export async function POST(request: NextRequest) {
 
     const { resumeContent, jobDescription } = await request.json();
 
-    if (!resumeContent || !jobDescription) {
+    if (!jobDescription) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Resume content and job description are required',
+          message: 'Job description is required',
         },
         { status: 400 }
       );
     }
 
-    // Mock response - replace with OpenAI API call when key is available
+    // Mock response - replace with a Groq API call when key is available
     const mockSuggestions = {
       keySkills: ['React', 'TypeScript', 'Node.js', 'REST APIs', 'Git'],
       recommendedChanges: [
@@ -38,11 +38,19 @@ export async function POST(request: NextRequest) {
       ],
     };
 
+    const mockBullets = [
+      'Built responsive React applications using TypeScript and Next.js, improving developer productivity by 30%',
+      'Designed and implemented REST API integrations with Node.js and Express to support real-time data flows',
+      'Optimized state management and component rendering to reduce load times and improve UX consistency',
+      'Collaborated with cross-functional teams to deliver scalable web features and mentor junior engineers',
+    ];
+
     return NextResponse.json(
       {
         success: true,
         message: 'Resume suggestions generated successfully (mock data)',
         suggestions: mockSuggestions,
+        bullets: mockBullets,
       },
       { status: 200 }
     );
