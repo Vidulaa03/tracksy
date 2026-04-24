@@ -1,6 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from '@/context/AuthContext';
-import Header from '@/components/Header';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from '@/context/AuthContext';
+import DashboardLayout from '@/components/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/auth/LoginPage';
@@ -12,20 +12,6 @@ import ResumePage from '@/pages/dashboard/ResumePage';
 import CalendarPage from '@/pages/dashboard/CalendarPage';
 import ExportPage from '@/pages/dashboard/ExportPage';
 import './globals.css';
-
-function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  async function handleLogout() { await logout(); navigate('/'); }
-  return (
-    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg)' }}>
-      <Header user={user} onLogout={handleLogout} />
-      <main className="flex-1 overflow-y-auto">
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1.5rem' }}>{children}</div>
-      </main>
-    </div>
-  );
-}
 
 export default function App() {
   return (

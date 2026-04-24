@@ -45,8 +45,8 @@ function AppCard({ app, onEdit, onDelete, overlay = false }: CardProps) {
           background:    overlay ? 'rgba(23,31,48,0.98)' : 'linear-gradient(180deg, rgba(22,30,46,0.98), rgba(15,22,35,0.98))',
           border:        `1px solid ${overlay ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.08)'}`,
           borderRadius:  '18px',
-          padding:       '16px',
-          boxShadow:     overlay ? '0 20px 56px rgba(0,0,0,0.7)' : '0 14px 30px rgba(0,0,0,0.18)',
+          padding:       '14px',
+          boxShadow:     overlay ? '0 20px 56px rgba(0,0,0,0.7)' : '0 12px 24px rgba(0,0,0,0.16)',
           transform:     overlay ? 'rotate(2deg) scale(1.02)' : undefined,
           cursor:        'default',
           position:      'relative',
@@ -56,11 +56,11 @@ function AppCard({ app, onEdit, onDelete, overlay = false }: CardProps) {
         {/* status badge + drag grip */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '99px',
-            background: `${sc.hex}18`, color: sc.hex,
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            fontSize: '11px', fontWeight: 700, padding: '5px 10px', borderRadius: '999px',
+            background: `${sc.hex}18`, color: sc.hex, textTransform: 'uppercase', letterSpacing: '0.08em',
           }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: sc.hex }} />
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: sc.hex }} />
             {sc.label}
           </span>
           <button
@@ -77,61 +77,62 @@ function AppCard({ app, onEdit, onDelete, overlay = false }: CardProps) {
         </div>
 
         {/* role */}
-        <p style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text)', lineHeight: 1.3, marginBottom: '4px' }}>
+        <p style={{ fontWeight: 600, fontSize: '12px', color: 'var(--text)', lineHeight: 1.3, marginBottom: '4px' }}>
           {app.position}
         </p>
 
         {/* company */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '10px' }}>
-          <Building2 size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-          <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{app.companyName}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+          <div style={{ width: '26px', height: '26px', borderRadius: '12px', display: 'grid', placeItems: 'center', background: 'rgba(255,255,255,0.05)' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)' }}>{app.companyName.slice(0, 2).toUpperCase()}</span>
+          </div>
+          <div>
+            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>{app.companyName}</p>
+          </div>
         </div>
 
         {/* notes preview */}
         {app.notes && (
           <p style={{
-            fontSize: '11px', color: 'var(--text-muted)',
+            fontSize: '12px', color: 'var(--text-muted)',
             display: '-webkit-box', WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical', overflow: 'hidden',
             marginBottom: '10px', paddingBottom: '10px',
-            borderBottom: '1px solid var(--border)',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
           }}>
             {app.notes}
           </p>
         )}
 
-        {/* footer */}
-        {app.linkedResume?.title && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '10px', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
-            <FileText size={11} style={{ color: 'var(--text-muted)' }} />
-            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{app.linkedResume.title}</span>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <span style={{ fontSize: '10px', fontWeight: 700, padding: '5px 9px', borderRadius: '999px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>
+            {app.linkedResume?.title ? 'Resume attached' : 'No resume linked'}
+          </span>
+          <span style={{ fontSize: '10px', fontWeight: 700, padding: '5px 9px', borderRadius: '999px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>
+            Applied {fmtDate(app.appliedDate)}
+          </span>
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Calendar size={11} style={{ color: 'var(--text-muted)' }} />
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{fmtDate(app.appliedDate)}</span>
-          </div>
-          <div className="card-actions" style={{ display: 'flex', gap: '2px', opacity: 0, transition: 'opacity 0.15s' }}>
+          <div className="card-actions" style={{ display: 'flex', gap: '4px', opacity: 0, transition: 'opacity 0.15s' }}>
             {app.jobDescriptionLink && (
               <a
                 href={app.jobDescriptionLink} target="_blank" rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                style={{ padding: '5px', borderRadius: '6px', color: 'var(--text-muted)', display: 'flex' }}
+                style={{ padding: '7px', borderRadius: '10px', color: 'var(--text-muted)', display: 'flex', background: 'rgba(255,255,255,0.04)' }}
               >
                 <ExternalLink size={12} />
               </a>
             )}
             <button
               onClick={(e) => { e.stopPropagation(); onEdit(app); }}
-              style={{ padding: '5px', borderRadius: '6px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}
+              style={{ padding: '7px', borderRadius: '10px', border: 'none', background: 'rgba(255,255,255,0.04)', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}
             >
               <Pencil size={12} />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onDelete(app._id); }}
-              style={{ padding: '5px', borderRadius: '6px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}
+              style={{ padding: '7px', borderRadius: '10px', border: 'none', background: 'rgba(255,255,255,0.04)', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
               onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
             >
@@ -162,11 +163,11 @@ function KanbanColumn({ status, apps, onEdit, onDelete }: ColProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status.value });
 
   return (
-    <div style={{ width: '298px', minWidth: '298px', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ width: '278px', minWidth: '278px', display: 'flex', flexDirection: 'column' }}>
       {/* column header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 14px', borderRadius: '16px', marginBottom: '12px',
+        padding: '10px 12px', borderRadius: '16px', marginBottom: '10px',
         background: `${status.hex}12`, border: `1px solid ${status.hex}28`,
         position: 'sticky', top: 0, zIndex: 5, backdropFilter: 'blur(10px)',
       }}>
@@ -175,7 +176,7 @@ function KanbanColumn({ status, apps, onEdit, onDelete }: ColProps) {
           <span style={{ fontSize: '13px', fontWeight: 700, color: status.hex }}>{status.label}</span>
         </div>
         <span style={{
-          fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '99px',
+          fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '99px',
           background: `${status.hex}22`, color: status.hex,
         }}>
           {apps.length}
@@ -186,7 +187,7 @@ function KanbanColumn({ status, apps, onEdit, onDelete }: ColProps) {
       <div
         ref={setNodeRef}
         style={{
-          flex: 1, minHeight: '260px', padding: '8px', borderRadius: '18px',
+          flex: 1, minHeight: '240px', padding: '8px', borderRadius: '18px',
           display: 'flex', flexDirection: 'column', gap: '8px',
           background: isOver ? `${status.hex}10` : 'rgba(255,255,255,0.018)',
           border:     `1px solid ${isOver ? status.hex + '55' : 'rgba(255,255,255,0.04)'}`,
