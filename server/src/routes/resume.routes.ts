@@ -74,18 +74,6 @@ function normalizeList(items?: string[]) {
   return [...new Set((items ?? []).map((item) => item.trim()).filter(Boolean))];
 }
 
-function computeAtsScore(args: { title: string; targetRole?: string; tags?: string[]; skills?: string[]; experienceLevel?: string }) {
-  let score = 52;
-  if (args.title.trim().length >= 6) score += 10;
-  if (args.targetRole) score += 10;
-  if ((args.skills?.length ?? 0) >= 3) score += 12;
-  else if ((args.skills?.length ?? 0) > 0) score += 6;
-  if ((args.tags?.length ?? 0) >= 2) score += 8;
-  else if ((args.tags?.length ?? 0) === 1) score += 4;
-  if (args.experienceLevel) score += 8;
-  return Math.min(score, 98);
-}
-
 function getFileHash(filePath: string) {
   const buffer = fs.readFileSync(filePath);
   return crypto.createHash('sha256').update(buffer).digest('hex');
@@ -175,13 +163,6 @@ router.post('/upload', upload.single('file'), async (req: AuthRequest, res: Resp
       size: req.file.size,
       mimeType: req.file.mimetype,
       fileHash,
-      atsScore: computeAtsScore({
-        title,
-        targetRole: metadata.targetRole,
-        skills: metadata.skills,
-        tags: metadata.tags,
-        experienceLevel: metadata.experienceLevel,
-      }),
       isDefault: (await Resume.countDocuments({ userId: req.userId })) === 0,
     });
 
@@ -198,7 +179,6 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     const resume = new Resume({
       ...data,
       userId: req.userId,
-      atsScore: computeAtsScore({ title: data.title }),
       isDefault: (await Resume.countDocuments({ userId: req.userId })) === 0,
     });
     await resume.save();
@@ -228,7 +208,6 @@ router.post('/:id/duplicate', async (req: AuthRequest, res: Response) => {
       size: source.size,
       mimeType: source.mimeType,
       fileHash: source.fileHash ? `${source.fileHash}-copy-${Date.now()}` : undefined,
-      atsScore: source.atsScore,
       isDefault: false,
     });
 
@@ -297,13 +276,6 @@ router.post('/:id/replace', upload.single('file'), async (req: AuthRequest, res:
     resume.size = req.file.size;
     resume.mimeType = req.file.mimetype;
     resume.fileHash = fileHash;
-    resume.atsScore = computeAtsScore({
-      title: resume.title,
-      targetRole: resume.targetRole,
-      skills: resume.skills,
-      tags: resume.tags,
-      experienceLevel: resume.experienceLevel,
-    });
     await resume.save();
 
     res.json(await serializeResume(resume.toObject(), req.userId!));
@@ -326,13 +298,6 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       { _id: req.params.id, userId: req.userId },
       {
         ...normalized,
-        atsScore: computeAtsScore({
-          title: normalized.title ?? 'Resume',
-          targetRole: normalized.targetRole,
-          skills: normalized.skills,
-          tags: normalized.tags,
-          experienceLevel: normalized.experienceLevel,
-        }),
       },
       { new: true, lean: true }
     );

@@ -29,18 +29,6 @@ export const applicationsAPI = {
   update: (id: string, data: Partial<JobApplication>) => apiClient.put<JobApplication>(`/applications/${id}`, data),
   delete: (id: string) => apiClient.delete(`/applications/${id}`),
   updateStatus: (id: string, status: JobStatus) => apiClient.patch<JobApplication>(`/applications/${id}/status`, { status }),
-  recommendResumes: (id: string, description: string) =>
-    apiClient.post<{
-      recommendations: Array<{
-        _id: string;
-        title: string;
-        score: number;
-        atsScore?: number;
-        targetRole?: string;
-        matchingTags: string[];
-        matchingSkills: string[];
-      }>;
-    }>(`/applications/${id}/recommend-resumes`, { description }),
 };
 
 export const resumesAPI = {

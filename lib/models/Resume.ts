@@ -14,9 +14,21 @@ const ResumeSchema = new Schema<IResume>(
       ref: 'User',
       required: [true, 'Please provide a user ID'],
     },
+    title: {
+      type: String,
+      default: 'General Resume',
+    },
+    version: {
+      type: String,
+      default: 'v1',
+    },
     content: {
       type: String,
       required: [true, 'Please provide resume content'],
+    },
+    structuredData: {
+      type: Schema.Types.Mixed,
+      default: null,
     },
   },
   {

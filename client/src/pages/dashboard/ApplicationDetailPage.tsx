@@ -171,7 +171,7 @@ export default function ApplicationDetailPage() {
               <>
                 <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>{app.linkedResume.title}</p>
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                  {[app.linkedResume.targetRole, app.linkedResume.atsScore ? `ATS ${app.linkedResume.atsScore}` : null].filter(Boolean).join(' · ')}
+                  {app.linkedResume.targetRole || 'General resume'}
                 </p>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
                   <button onClick={handleResumePreview} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-3)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>

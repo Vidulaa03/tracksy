@@ -39,6 +39,9 @@ export interface Resume {
   id: string;
   userId: string;
   content: string;
+  title?: string;
+  version?: string;
+  structuredData?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }

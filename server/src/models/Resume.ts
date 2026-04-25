@@ -14,7 +14,6 @@ export interface IResume extends Document {
   size?: number;          // file size in bytes
   mimeType?: string;      // application/pdf
   fileHash?: string;
-  atsScore?: number;
   isDefault: boolean;
   lastUsedAt?: Date | null;
   createdAt: Date;
@@ -39,7 +38,6 @@ const resumeSchema = new Schema<IResume>(
     size:         { type: Number },
     mimeType:     { type: String },
     fileHash:     { type: String },
-    atsScore:     { type: Number },
     isDefault:    { type: Boolean, default: false },
     lastUsedAt:   { type: Date, default: null },
   },

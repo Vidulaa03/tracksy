@@ -72,7 +72,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ success: false, message: 'Invalid ID' }, { status: 400 });
     }
 
-    const { content } = await request.json();
+    const { content, title, version, structuredData } = await request.json();
 
     if (!content || content.trim().length === 0) {
       return NextResponse.json(
@@ -96,6 +96,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     resume.content = content;
+    if (typeof title === 'string') resume.title = title;
+    if (typeof version === 'string') resume.version = version;
+    resume.structuredData = structuredData || null;
     await resume.save();
 
     return NextResponse.json(

@@ -47,7 +47,6 @@ export interface LinkedResumeSummary {
   title: string;
   originalName?: string;
   filepath?: string;
-  atsScore?: number;
   updatedAt?: string;
   tags?: string[];
   targetRole?: string;
@@ -61,6 +60,7 @@ export interface ResumeHistoryEntry {
 }
 
 export type ExperienceLevel = 'student' | 'fresher' | 'junior' | 'mid' | 'senior' | 'lead';
+
 
 export interface Resume {
   _id: string;
@@ -76,7 +76,6 @@ export interface Resume {
   filepath?: string;      // e.g. uploads/resumes/xxx.pdf
   size?: number;          // bytes
   mimeType?: string;
-  atsScore?: number;
   isDefault: boolean;
   lastUsedAt?: string | null;
   linkedApplicationsCount?: number;

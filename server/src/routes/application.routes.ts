@@ -41,29 +41,6 @@ const updateSchema = createSchema.partial().extend({
   status: z.enum(['applied', 'phone_screen', 'interview', 'offer', 'rejected']).optional(),
 });
 
-function tokenize(value: string) {
-  return [...new Set(value.toLowerCase().match(/[a-z0-9+#.]+/g) ?? [])];
-}
-
-function scoreResumeForJob(resume: any, description: string) {
-  const tokens = new Set(tokenize(description));
-  const roleTokens = tokenize(`${resume.title} ${resume.targetRole ?? ''}`);
-  const matchingTags = (resume.tags ?? []).filter((tag: string) => tokens.has(tag.toLowerCase()));
-  const matchingSkills = (resume.skills ?? []).filter((skill: string) => tokens.has(skill.toLowerCase()));
-
-  let score = 45;
-  score += matchingTags.length * 10;
-  score += matchingSkills.length * 8;
-  if (roleTokens.some((token) => tokens.has(token))) score += 12;
-  if (resume.isDefault) score += 4;
-
-  return {
-    score: Math.min(score, 99),
-    matchingTags,
-    matchingSkills,
-  };
-}
-
 async function ensureLinkedResume(userId: string, linkedResumeId?: string | null) {
   if (!linkedResumeId) return null;
   const resume = await Resume.findOne({ _id: linkedResumeId, userId }).lean();
@@ -91,7 +68,6 @@ async function serializeApplication(app: any, includeHistory = false) {
         title: app.linkedResumeId.title,
         originalName: app.linkedResumeId.originalName,
         filepath: app.linkedResumeId.filepath,
-        atsScore: app.linkedResumeId.atsScore,
         updatedAt: app.linkedResumeId.updatedAt,
         tags: app.linkedResumeId.tags ?? [],
         targetRole: app.linkedResumeId.targetRole,
@@ -133,7 +109,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   try {
     const apps = await JobApplication.find({ userId: req.userId })
       .sort({ appliedDate: -1 })
-      .populate('linkedResumeId', 'title originalName filepath atsScore updatedAt tags targetRole')
+      .populate('linkedResumeId', 'title originalName filepath updatedAt tags targetRole')
       .lean();
     res.json(await Promise.all(apps.map((app) => serializeApplication(app))));
   } catch {
@@ -144,7 +120,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const app = await JobApplication.findOne({ _id: req.params.id, userId: req.userId })
-      .populate('linkedResumeId', 'title originalName filepath atsScore updatedAt tags targetRole')
+      .populate('linkedResumeId', 'title originalName filepath updatedAt tags targetRole')
       .lean();
     if (!app) return res.status(404).json({ message: 'Not found' });
     res.json(await serializeApplication(app, true));
@@ -176,7 +152,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     }
 
     const saved = await JobApplication.findById(app._id)
-      .populate('linkedResumeId', 'title originalName filepath atsScore updatedAt tags targetRole')
+      .populate('linkedResumeId', 'title originalName filepath updatedAt tags targetRole')
       .lean();
     res.status(201).json(await serializeApplication(saved, true));
   } catch (err) {
@@ -207,7 +183,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       },
       { new: true }
     )
-      .populate('linkedResumeId', 'title originalName filepath atsScore updatedAt tags targetRole')
+      .populate('linkedResumeId', 'title originalName filepath updatedAt tags targetRole')
       .lean();
 
     if (previousResumeId !== (nextResumeId || null)) {
@@ -225,28 +201,6 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
   } catch (err) {
     if (err instanceof z.ZodError) return res.status(400).json({ message: 'Invalid input', errors: err.errors });
     res.status(400).json({ message: err instanceof Error ? err.message : 'Server error' });
-  }
-});
-
-router.post('/:id/recommend-resumes', async (req: AuthRequest, res: Response) => {
-  try {
-    const description = z.object({ description: z.string().min(1) }).parse(req.body).description;
-    const resumes = await Resume.find({ userId: req.userId }).lean();
-    const recommendations = resumes
-      .map((resume) => ({
-        _id: String(resume._id),
-        title: resume.title,
-        atsScore: resume.atsScore,
-        targetRole: resume.targetRole,
-        ...scoreResumeForJob(resume, description),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3);
-
-    res.json({ recommendations });
-  } catch (err) {
-    if (err instanceof z.ZodError) return res.status(400).json({ message: 'Description required' });
-    res.status(500).json({ message: 'Server error' });
   }
 });
 

@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { content } = await request.json();
+    const { content, title, version, structuredData } = await request.json();
 
     if (!content || content.trim().length === 0) {
       return NextResponse.json(
@@ -67,6 +67,9 @@ export async function POST(request: NextRequest) {
     const resume = new Resume({
       userId: user.userId,
       content,
+      title: title || 'General Resume',
+      version: version || 'v1',
+      structuredData: structuredData || null,
     });
 
     await resume.save();

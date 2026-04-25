@@ -165,7 +165,7 @@ export default function ApplicationsListPage() {
                 </span>
                 <div>
                   <p style={{ fontSize: '12px', color: 'var(--text)' }}>{app.linkedResume?.title ?? 'No resume linked'}</p>
-                  <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{app.linkedResume?.atsScore ? `ATS ${app.linkedResume.atsScore}` : 'Attach the exact version used'}</p>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{app.linkedResume ? 'Exact version attached' : 'Attach the exact version used'}</p>
                 </div>
                 <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{app.salaryRange || '—'}</span>
                 <div className="row-actions" onClick={(event) => event.stopPropagation()} style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', opacity: 0, transition: 'opacity 0.15s' }}>
