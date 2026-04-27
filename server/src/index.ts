@@ -4,13 +4,13 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 
-import authRoutes        from './routes/auth.routes';
-import applicationRoutes from './routes/application.routes';
-import resumeRoutes      from './routes/resume.routes';
-import aiRoutes          from './routes/ai.routes';
+import authRoutes        from './routes/auth.routes.js';
+import applicationRoutes from './routes/application.routes.js';
+import resumeRoutes      from './routes/resume.routes.js';
+import aiRoutes          from './routes/ai.routes.js';
 
-import { authMiddleware } from './middleware/auth.middleware';
-import { errorHandler }   from './middleware/error.middleware';
+import { authMiddleware } from './middleware/auth.middleware.js';
+import { errorHandler }   from './middleware/error.middleware.js';
 
 dotenv.config();
 

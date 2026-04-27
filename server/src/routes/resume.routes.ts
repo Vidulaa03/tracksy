@@ -5,9 +5,9 @@ import fs from 'fs';
 import multer from 'multer';
 import { z } from 'zod';
 
-import Resume from '../models/Resume';
-import JobApplication from '../models/JobApplication';
-import { AuthRequest } from '../middleware/auth.middleware';
+import Resume from '../models/Resume.js';
+import JobApplication from '../models/JobApplication.js';
+import { AuthRequest } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 

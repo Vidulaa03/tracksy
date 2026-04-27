@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import express, { Response } from 'express';
 import { z } from 'zod';
-import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
+import { authMiddleware, AuthRequest } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 

@@ -1,10 +1,10 @@
 import express, { Response } from 'express';
 import { z } from 'zod';
 
-import JobApplication from '../models/JobApplication';
-import Resume from '../models/Resume';
-import ResumeUsageHistory from '../models/ResumeUsageHistory';
-import { AuthRequest } from '../middleware/auth.middleware';
+import JobApplication from '../models/JobApplication.js';
+import Resume from '../models/Resume.js';
+import ResumeUsageHistory from '../models/ResumeUsageHistory.js';
+import { AuthRequest } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
