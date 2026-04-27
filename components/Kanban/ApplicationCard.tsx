@@ -12,7 +12,7 @@ interface ApplicationCardProps {
   onEdit: (app: JobApplication) => void;
   onDelete: (id: string) => void;
   isDragging?: boolean;
-}
+  dragOverlay?}
 
 export function ApplicationCard({ application, onEdit, onDelete, isDragging }: ApplicationCardProps) {
   const {
@@ -26,8 +26,7 @@ export function ApplicationCard({ application, onEdit, onDelete, isDragging }: A
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isSortableDragging ? 0.4 : 1,
+SortableDragging ? 0.4 : 1,
   };
 
   const statusConfig = getStatusConfig(application.status);

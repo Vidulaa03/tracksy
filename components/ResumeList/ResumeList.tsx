@@ -12,7 +12,7 @@ interface ResumeListProps {
   onPreview: (resume: Resume) => void;
   onDuplicate: (resume: Resume) => void;
   onImprove: (resume: Resume) => void;
-  onExport: (resume: Resume) => void;
+  onDelete: (i  onExport: (resume: Resume) => void;
   onDelete: (id: string) => void;
   isLoading?: boolean;
 }
@@ -117,10 +117,7 @@ export function ResumeList({
                 className="border-slate-600 text-slate-300 hover:bg-slate-700"
               >
                 Export PDF
-              </Button>
-              <Button
-                onClick={() => {
-                  if (confirm('Are you sure you want to delete this resume?')) {
+('Are you sure you want to delete this resume?')) {
                     onDelete(resume.id);
                   }
                 }}

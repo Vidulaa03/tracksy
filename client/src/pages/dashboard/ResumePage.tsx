@@ -490,7 +490,6 @@ export default function ResumePage() {
               </div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <button onClick={() => openEditor()} style={{ padding: '10px 16px', borderRadius: '12px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text)', fontWeight: 700, cursor: 'pointer' }}>New resume</button>
-                <button onClick={() => previewResume?.content && printResumePDF(previewResume.content, previewResume.title)} disabled={!previewResume?.content} style={{ padding: '10px 16px', borderRadius: '12px', border: 'none', background: previewResume?.content ? 'var(--primary)' : 'rgba(209,213,219,0.4)', color: 'white', cursor: previewResume?.content ? 'pointer' : 'not-allowed', fontWeight: 700 }}>Export PDF</button>
               </div>
             </div>
 
