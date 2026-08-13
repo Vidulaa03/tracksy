@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { JobApplication, JobStatus, Resume } from '@/types';
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+// In production set VITE_API_URL to the deployed API (for example, the Render
+// service URL). Keep local development pointed at the local Express server.
+const API_BASE = (import.meta as any).env?.VITE_API_URL ||
+  ((import.meta as any).env?.DEV ? 'http://localhost:3000' : '');
 
 const apiClient = axios.create({ baseURL: API_BASE });
 
